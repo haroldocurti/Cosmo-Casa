@@ -143,7 +143,7 @@ def tela_selecao():
         },
         'exoplaneta': {
             'nome': 'Exoplaneta', 
-            'imagem': 'missao_exoplaneta.png',
+            'imagem': 'Exoplaneta.png',
             # ADIÇÃO: Descrição e stats para o card
             'descricao': 'Uma jornada para as estrelas em busca de um novo lar. Desafios desconhecidos e extremos aguardam no primeiro habitat interestelar.',
             'stats': {

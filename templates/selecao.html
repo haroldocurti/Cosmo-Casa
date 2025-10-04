@@ -13,7 +13,7 @@
             {% for id, dados in missoes.items() %}
             <div class="nave-card">
                 <h4>{{ dados.nome }}</h4>
-                <div class="nave-imagem-placeholder">
+                <div>
                     <img class = nave-imagem-placeholder src="{{ url_for('static', filename='imagens/' + dados.imagem) }}" alt="Missão para {{ dados.nome }}">
                 </div>
                 <p class="missao-descricao">{{ dados.descricao }}</p>
