@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Seleção de Módulos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <form class="container-grande" action="{{ url_for('viagem', destino=destino, nave_id=nave.imagem.split('.')[0]) }}" method="POST">
+        
+        <h2>Montagem da Carga</h2>
+        <div class="info-nave">
+            <span>Missão: <strong>{{ destino.capitalize() }}</strong></span>
+            <span>Nave: <strong>{{ nave.nome }}</strong></span>
+        </div>
+
+        <div class="sumario-carga">
+            <h3>Sumário da Carga</h3>
+            <p>
+                Massa Total Selecionada: 
+                <span id="massa-total">0</span> kg / 
+                <span id="capacidade-carga">{{ (nave.capacidade_carga * 1000) | int }}</span> kg
+            </p>
+            <div class="barra-progresso-container">
+                <div id="barra-progresso" class="barra-progresso"></div>
+            </div>
+        </div>
+
+        <h3>Módulos Disponíveis</h3>
+        <div class="modulos-container">
+            {% for id, modulo in modulos.items() %}
+            <div class="modulo-card" data-id="{{ id }}" data-massa="{{ modulo.massa }}" data-tooltip="{{ modulo.obs }}">
+                <div class="modulo-imagem-container">
+                    <img src="{{ url_for('static', filename='imagens/modulos/' + modulo.imagem) }}" alt="{{ modulo.nome }}">
+                </div>
+                <div class="modulo-info">
+                    <h4>{{ modulo.nome }}</h4>
+                    <p><strong>Massa:</strong> {{ modulo.massa }} kg</p>
+                    <p><strong>Energia:</strong> {{ modulo.energia }} kWh/dia</p>
+                    <p><strong>Água:</strong> {{ modulo.agua }} L/dia</p>
+                </div>
+                <button type="button" class="botao-modulo">Adicionar</button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div id="modulos-selecionados-hidden"></div>
+        <button type="submit" class="botao" id="botao-lancar">Lançar Missão</button>
+        
+    </form>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

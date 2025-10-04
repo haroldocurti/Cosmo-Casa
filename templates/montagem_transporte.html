@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Montagem do Transporte</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Missão: {{ destino.capitalize() }}</h2>
+      <h3>Escolha sua Nave de Transporte</h3>
+
+      <div class="naves-container">
+        {% for id, nave in naves.items() %}
+        <div class="nave-card">
+          <h4>{{ nave.nome }}</h4>
+          <div class="nave-imagem-placeholder">IMAGEM</div>
+          <p class="nave-descricao">{{ nave.descricao }}</p>
+          <div class="nave-stats">
+            <strong>Operador:</strong> {{ nave.operador }}<br />
+            <strong>Capacidade (LEO/GTO):</strong> {{ nave.capacidade_carga }}
+            ton<br />
+            <strong>Perfil da Missão:</strong> {{ nave.perfil_missao }}
+          </div>
+          <a href="{{ url_for('selecao_modulos', destino=destino, nave_id=id) }}" class="botao">Selecionar</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </body>
+</html>

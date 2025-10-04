@@ -1,0 +1,368 @@
+/* ==========================================================================
+   1. ESTILOS GERAIS E BASE
+   ========================================================================== */
+
+body {
+    background-color: #0B0F29; /* Azul escuro espacial */
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1, h2 {
+    font-size: 3em;
+}
+
+/* ==========================================================================
+   2. COMPONENTES REUTILIZÁVEIS
+   ========================================================================== */
+
+.container {
+    text-align: center;
+}
+
+.container-grande {
+    width: 90%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+.botao {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4a6fce;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.botao:hover {
+    background-color: #6a8ee8;
+}
+
+/* ==========================================================================
+   3. ESTILOS POR TELA
+   ========================================================================== */
+
+/* --- Tela Inicial --- */
+.logo {
+    width: 300px;
+    margin: 20px 0;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
+/* --- Tela de Seleção de Missão --- */
+.missoes-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 50px;
+}
+
+.missao-card {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.missao-descricao {
+    flex-grow: 1; /* Faz a descrição ocupar o espaço disponível, alinhando os botões */
+    font-size: 0.9em;
+    line-height: 1.4;
+    text-align: left;
+    color: var(--cor-texto-secundario);
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.missao-stats {
+    margin-top: auto; /* Garante que os stats fiquem alinhados com a parte de baixo */
+    padding-top: 15px;
+    border-top: 1px solid var(--cor-primaria-ui);
+    font-size: 0.9em;
+    text-align: left;
+    line-height: 1.5;
+}
+/* --- Tela de Seleção de Naves --- */
+.naves-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.nave-card {
+    background-color: #1c2142;
+    padding: 20px;
+    border-radius: 15px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.nave-card h4 {
+    text-align: center;
+    font-size: 1.4em;
+    margin-top: 0;
+}
+
+.nave-imagem-placeholder {
+    width: 100%;
+    height: 150px;
+    background-color: #0B0F29;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: #4a6fce;
+    margin-bottom: 15px;
+}
+
+.nave-descricao {
+    flex-grow: 1;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.nave-stats {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #4a6fce;
+    font-size: 1em;
+}
+
+.nave-card .botao {
+    text-align: center;
+}
+
+/* --- Tela de Seleção de Módulos --- */
+.info-nave {
+    display: flex;
+    justify-content: space-around;
+    background-color: #1c2142;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    font-size: 1.2em;
+}
+
+.sumario-carga {
+    background-color: #0B0F29;
+    padding: 20px;
+    border: 1px solid #4a6fce;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.sumario-carga h3 {
+    margin-top: 0;
+}
+
+.sumario-carga p {
+    font-size: 1.5em;
+}
+
+#massa-total {
+    font-weight: bold;
+}
+
+.barra-progresso-container {
+    width: 100%;
+    background-color: #1c2142;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.barra-progresso {
+    height: 20px;
+    width: 0%;
+    border-radius: 5px;
+    transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+.modulos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.modulo-card {
+    background-color: #1c2142;
+    padding: 15px;
+    border-radius: 10px;
+    width: 220px;
+    text-align: left;
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+}
+
+.modulo-card h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #aeb8de;
+    text-align: center;
+}
+
+.modulo-card p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.modulo-imagem-container {
+    height: 120px;
+    background-color: #0B0F29;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.modulo-imagem-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modulo-info {
+    flex-grow: 1;
+}
+
+.botao-modulo {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4a6fce;
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.botao-modulo:hover {
+    background-color: #6a8ee8;
+}
+
+.botao-modulo.selecionado {
+    background-color: #e74c3c;
+}
+
+.botao-modulo.selecionado:hover {
+    background-color: #c0392b;
+}
+
+#botao-lancar {
+    margin-top: 40px;
+    font-size: 1.5em;
+    padding: 15px 30px;
+}
+
+/* Tooltip do Módulo */
+.modulo-card::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1c2142;
+    color: #aeb8de;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #4a6fce;
+    width: 250px;
+    text-align: center;
+    font-size: 0.9em;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+.modulo-card:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Tela do Diário de Viagem --- */
+.diario-container {
+    text-align: left;
+    margin-top: 30px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #4a6fce;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.diario-entrada {
+    display: flex;
+    align-items: flex-start;
+    border-bottom: 1px solid #1c2142;
+    padding: 15px 0;
+}
+
+.diario-entrada:last-child {
+    border-bottom: none;
+}
+
+.turno {
+    background-color: #4a6fce;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-right: 20px;
+    font-weight: bold;
+    min-width: 90px;
+    text-align: center;
+}
+
+.evento h4 {
+    margin: 0 0 5px 0;
+}
+
+.evento p {
+    margin: 0;
+    color: #aeb8de;
+}
+
+.sumario-chegada {
+    margin-top: 30px;
+    background-color: #1c2142;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.sumario-chegada ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.sumario-chegada li {
+    padding: 5px 0;
+}
+
+.status-ok {
+    color: #2ecc71; /* Verde */
+}
+
+.status-avariado {
+    color: #e74c3c; /* Vermelho */
+}

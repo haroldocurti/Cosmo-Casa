@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Seleção de Missão</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="conteudo-centralizado">
+    <div class="container-grande">
+        <h2>Escolha seu Destino</h2>
+        <div class="naves-container">
+
+            {% for id, dados in missoes.items() %}
+            <div class="nave-card">
+                <h4>{{ dados.nome }}</h4>
+                <div class="nave-imagem-placeholder">
+                    <img class = nave-imagem-placeholder src="{{ url_for('static', filename='imagens/' + dados.imagem) }}" alt="Missão para {{ dados.nome }}">
+                </div>
+                <p class="missao-descricao">{{ dados.descricao }}</p>
+                <div class="missao-stats">
+                    {% for stat, valor in dados.stats.items() %}
+                        <strong>{{ stat }}:</strong> {{ valor }}<br />
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('montagem_transporte', destino=id) }}" class="botao">Analisar Transporte</a>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF--8">
+    <title>Relatório de Viagem</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container-grande">
+        <h2>Diário de Bordo da Missão</h2>
+        <div class="info-nave">
+            <span>Destino: <strong>{{ destino.capitalize() }}</strong></span>
+            <span>Nave: <strong>{{ nave.nome }}</strong></span>
+        </div>
+
+        <div class="diario-container">
+            {% for entrada in diario %}
+            <div class="diario-entrada">
+                <span class="turno">Turno {{ entrada.turno }}</span>
+                <div class="evento">
+                    <h4>{{ entrada.evento.nome }}</h4>
+                    <p>{{ entrada.evento.descricao }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="sumario-chegada">
+            <h3>Condição da Carga na Chegada</h3>
+            <ul>
+            {% for id, modulo in modulos.items() %}
+                <li>
+                    {{ modulo.nome }} - 
+                    {% if modulo.status == 'Avariado' %}
+                        <strong class="status-avariado">AVARIADO</strong>
+                    {% else %}
+                        <strong class="status-ok">OPERACIONAL</strong>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        <a href="{{ url_for('tela_selecao') }}" class="botao">Planejar Nova Missão</a>
+    </div>
+</body>
+</html>
