@@ -7,42 +7,167 @@ app = Flask(__name__)
 
 # --- DEFINIÇÃO DAS ROTAS ---
 
-# --- BANCO DE DADOS DAS NAVES (baseado na imagem fornecida) ---
-# Os atributos foram adaptados para a mecânica do jogo.
+# --- CONSTANTES FÍSICAS PARA CÁLCULOS ---
+GRAVIDADE_TERRA = 9.81  # m/s²
+CONSTANTE_GRAVITACIONAL = 6.67430e-11  # m³/kg/s²
+MASA_TERRA = 5.972e24  # kg
+RAIO_TERRA = 6371000  # m
+
+# --- BANCO DE DADOS DAS NAVES (com parâmetros de propulsão realistas) ---
 NAVES_ESPACIAIS = {
     'falcon9': {
-        'nome': 'Falcon 9 (Block 5)',
-        'operador': 'EUA / SpaceX', #
-        'imagem': 'falcon9.png',
-        'descricao': 'Foguete de dois estágios com autonomia limitada pelo consumo de propelente. Excelente para cargas pesadas em órbita baixa.', #
-        'capacidade_carga': 22.8, # Em toneladas, para LEO
-        'perfil_missao': 'Dois Estágios' #
+        'nome': 'Falcon 9',
+        'operador': 'EUA / SpaceX',
+        'imagem': 'Falcon9.png',
+        'descricao': 'Foguete de dois estágios reutilizável com excelente relação empuxo-peso. Ideal para cargas pesadas em órbita baixa.',
+        'capacidade_carga': 22.8,  # toneladas para LEO
+        'perfil_missao': 'Dois Estágios',
+        # Parâmetros de propulsão adicionados
+        'empuxo_total': 7607,  # kN (1º estágio: 7.607 kN)
+        'impulso_especifico': 282,  # segundos (vacuum)
+        'massa_seca': 28.2,  # toneladas (dry mass)
+        'massa_combustivel': 433.1,  # toneladas (propellant mass)
+        'delta_v_total': 9300,  # m/s (total capability)
+        'taxa_empuxo_peso': 1.8  # T/W ratio
     },
     'pslv': {
-        'nome': 'PSLV (variante XL)',
-        'operador': 'Índia / ISRO', #
-        'imagem': 'pslv.png',
-        'descricao': 'Perfil de missão versátil com múltiplas queimas de estágio, ideal para destinos variados como órbitas polares.', #
-        'capacidade_carga': 3.8, # Em toneladas, para LEO (versão XL)
-        'perfil_missao': 'Múltiplas Queimas' #
+        'nome': 'PSLV',
+        'operador': 'Índia / ISRO',
+        'imagem': 'PSLV.jpg',
+        'descricao': 'Foguete confiável com múltiplos estágios e capacidade de inserção em órbitas polares e sincronizadas com o sol.',
+        'capacidade_carga': 3.8,  # toneladas para LEO
+        'perfil_missao': 'Múltiplas Queimas',
+        'empuxo_total': 4800,  # kN
+        'impulso_especifico': 262,  # segundos
+        'massa_seca': 18.5,  # toneladas
+        'massa_combustivel': 230.0,  # toneladas
+        'delta_v_total': 8200,  # m/s
+        'taxa_empuxo_peso': 1.4
     },
     'longmarch8a': {
-        'nome': 'Long March-8A',
-        'operador': 'China', #
-        'imagem': 'longmarch8a.png',
-        'descricao': 'Projetado para uma gama diversificada de órbitas, com longos períodos de inércia entre as queimas de estágio.', #
-        'capacidade_carga': 9.8, # Em toneladas, para LEO
-        'perfil_missao': 'Coasting Estendido' #
+        'nome': 'Long-March8A',
+        'operador': 'China',
+        'imagem': 'foguete-longa-marcha.png',
+        'descricao': 'Foguete de médio porte com capacidade para múltiplas órbitas e fases de coasting estendidas.',
+        'capacidade_carga': 9.8,  # toneladas para LEO
+        'perfil_missao': 'Coasting Estendido',
+        'empuxo_total': 5800,  # kN
+        'impulso_especifico': 275,  # segundos
+        'massa_seca': 22.1,  # toneladas
+        'massa_combustivel': 320.5,  # toneladas
+        'delta_v_total': 8800,  # m/s
+        'taxa_empuxo_peso': 1.6
     },
     'gslv': {
-        'nome': 'GSLV (Mk II)',
-        'operador': 'Índia / ISRO', #
-        'imagem': 'gslv.png',
-        'descricao': 'Inclui estágio criogênico para inserção em órbitas mais altas, definindo uma autonomia complexa.', #
-        'capacidade_carga': 2.5, # Em toneladas, para GTO
-        'perfil_missao': 'Estágio Criogênico' #
+        'nome': 'GSLV',
+        'operador': 'Índia / ISRO',
+        'imagem': 'LVM3_M3.png',
+        'descricao': 'Foguete com estágio criogênico superior para inserção precisa em órbitas de transferência geossíncronas.',
+        'capacidade_carga': 2.5,  # toneladas para GTO
+        'perfil_missao': 'Estágio Criogênico',
+        'empuxo_total': 4200,  # kN
+        'impulso_especifico': 295,  # segundos (estágio criogênico)
+        'massa_seca': 16.8,  # toneladas
+        'massa_combustivel': 198.7,  # toneladas
+        'delta_v_total': 9500,  # m/s
+        'taxa_empuxo_peso': 1.3
     }
 }
+
+# --- FUNÇÕES DE CÁLCULO DE PERFORMANCE ---
+def calcular_delta_v(massa_seca, massa_combustivel, impulso_especifico):
+    """
+    Calcula o Delta-V usando a Equação de Foguete de Tsiolkovsky
+    Δv = Isp * g0 * ln(m0/mf)
+    
+    Onde:
+    - Isp: Impulso específico (segundos)
+    - g0: Gravidade padrão na Terra (9.81 m/s²)
+    - m0: Massa inicial (seca + combustível)
+    - mf: Massa final (apenas seca)
+    """
+    massa_inicial = massa_seca + massa_combustivel
+    massa_final = massa_seca
+    
+    if massa_final <= 0:
+        return 0
+    
+    return impulso_especifico * GRAVIDADE_TERRA * math.log(massa_inicial / massa_final)
+
+def calcular_distancia_maxima_sem_carga(nave, destino='leo'):
+    """
+    Calcula a distância máxima que um foguete pode alcançar sem carga útil
+    considerando sua performance máxima (Delta-V total).
+    
+    Para órbitas: 
+    - LEO: ~7800 m/s Delta-V necessário
+    - GTO: ~10700 m/s Delta-V necessário
+    - Lua: ~10800 m/s Delta-V necessário
+    - Marte: ~13600 m/s Delta-V necessário
+    """
+    delta_v_disponivel = nave['delta_v_total']
+    
+    # Delta-V necessário para diferentes destinos (em m/s)
+    requisitos_delta_v = {
+        'leo': 7800,    # Órbita Terrestre Baixa
+        'gto': 10700,   # Órbita de Transferência Geossíncrona
+        'lua': 10800,   # Órbita Lunar/Trajetória Lua
+        'marte': 13600  # Trajetória Marte
+    }
+    
+    delta_v_necessario = requisitos_delta_v.get(destino.lower(), 7800)
+    
+    # Se o foguete tem Delta-V suficiente para o destino
+    if delta_v_disponivel >= delta_v_necessario:
+        # Calcular distância máxima baseada no Delta-V excedente
+        delta_v_excedente = delta_v_disponivel - delta_v_necessario
+        
+        # Converter Delta-V excedente em distância adicional
+        # (aproximação simplificada para órbitas)
+        distancia_base = {
+            'leo': 400,      # km de altitude
+            'gto': 35786,    # km (órbita geoestacionária)
+            'lua': 384400,   # km
+            'marte': 225e6   # km (média)
+        }
+        
+        distancia_adicional = (delta_v_excedente / 1000) * 10000  # Aproximação
+        return distancia_base.get(destino.lower(), 0) + distancia_adicional
+    
+    # Se não tem Delta-V suficiente, calcular fração alcançável
+    fracao_alcancavel = delta_v_disponivel / delta_v_necessario
+    
+    distancias_maximas = {
+        'leo': 400 * fracao_alcancavel,
+        'gto': 35786 * fracao_alcancavel,
+        'lua': 384400 * fracao_alcancavel,
+        'marte': 225e6 * fracao_alcancavel
+    }
+    
+    return distancias_maximas.get(destino.lower(), 0)
+
+def calcular_carga_maxima_para_destino(nave, destino, distancia_destino):
+    """
+    Calcula a carga máxima possível para um destino específico
+    baseado na distância máxima sem carga.
+    
+    Usa a relação: carga_max = capacidade_nominal * (1 - (distancia_destino / distancia_max_sem_carga))
+    """
+    distancia_max_sem_carga = calcular_distancia_maxima_sem_carga(nave, destino)
+    
+    if distancia_max_sem_carga <= 0:
+        return 0
+    
+    # Fator de redução baseado na distância
+    fator_reducao = 1 - (distancia_destino / distancia_max_sem_carga)
+    
+    # Limitar entre 0 e 1
+    fator_reducao = max(0, min(1, fator_reducao))
+    
+    # Capacidade nominal da nave (em kg)
+    capacidade_nominal = nave['capacidade_carga'] * 1000  # Convertendo para kg
+    
+    return capacidade_nominal * fator_reducao
 
 # --- BANCO DE DADOS DOS MÓDULOS (com imagens e observações para tooltips) ---
 MODULOS_HABITAT = {
@@ -136,7 +261,7 @@ def tela_selecao():
             # ADIÇÃO: Descrição e stats para o card
             'descricao': 'O próximo grande salto da humanidade. Enfrente tempestades de poeira e um ambiente hostil em uma missão de longa duração.',
             'stats': {
-                'Distância': '~225 milhões km',
+                'Distância': '225 milhões km',
                 'Duração Estimada': 'Longa (60 turnos)',
                 'Riscos': 'Elevados'
             }
@@ -233,3 +358,41 @@ def viagem(destino, nave_id):
 # --- EXECUÇÃO DO SERVIDOR ---
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/performance-foguetes')
+def performance_foguetes():
+    """
+    Rota para visualizar os cálculos de performance dos foguetes
+    """
+    resultados = {}
+    
+    for nave_id, nave in NAVES_ESPACIAIS.items():
+        # Calcular performance para cada destino
+        performance = {}
+        
+        for destino in ['leo', 'gto', 'lua', 'marte']:
+            distancia_max = calcular_distancia_maxima_sem_carga(nave, destino)
+            
+            # Distâncias dos destinos em km
+            distancias_destino = {
+                'leo': 400,
+                'gto': 35786,
+                'lua': 384400,
+                'marte': 225e6
+            }
+            
+            carga_maxima = calcular_carga_maxima_para_destino(nave, destino, distancias_destino[destino])
+            
+            performance[destino] = {
+                'distancia_maxima_km': round(distancia_max, 2),
+                'carga_maxima_kg': round(carga_maxima, 2),
+                'carga_maxima_ton': round(carga_maxima / 1000, 2)
+            }
+        
+        resultados[nave_id] = {
+            'info': nave,
+            'performance': performance,
+            'delta_v_calculado': calcular_delta_v(nave['massa_seca'], nave['massa_combustivel'], nave['impulso_especifico'])
+        }
+    
+    return render_template('performance_foguetes.html', resultados=resultados)

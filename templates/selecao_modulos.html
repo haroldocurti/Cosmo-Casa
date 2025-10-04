@@ -32,7 +32,6 @@
         <h3>Módulos Disponíveis</h3>
         <div class="modulos-controls">
             <input type="text" id="filtro-modulos" placeholder="Filtrar módulos..." aria-label="Filtrar módulos">
-            <button type="button" id="toggle-modulos" class="botao" aria-expanded="false">Expandir</button>
         </div>
         <div id="container-modulos" class="modulos-container cards-scroll-inner">
             {% for id, modulo in modulos.items() %}
@@ -41,12 +40,15 @@
                     <img src="{{ url_for('static', filename='imagens/modulos/' + modulo.imagem) }}" alt="{{ modulo.nome }}">
                 </div>
                 <div class="modulo-info">
-                    <h4>{{ modulo.nome }}</h4>
+                    <h4 id="modulo-titulo-{{ id }}">{{ modulo.nome }}</h4>
+                    </div>
+                    <div class = 'modulos-stats'>
                     <p><strong>Massa:</strong> {{ modulo.massa }} kg</p>
                     <p><strong>Energia:</strong> {{ modulo.energia }} kWh/dia</p>
                     <p><strong>Água:</strong> {{ modulo.agua }} L/dia</p>
-                </div>
-                <button type="button" class="botao">Adicionar</button>
+                    </div>
+                
+                <button type="button" class="botao-modulo">Adicionar</button>
             </div>
             {% endfor %}
         </div>

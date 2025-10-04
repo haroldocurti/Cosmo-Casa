@@ -53,8 +53,7 @@ h4{
     color: var(--cor-texto-secundario);
     line-height: 1.5;
     text-align: center;
-    font-size: 20px;
-
+    
 }
 /* Evita restringir o header; usamos .brand-header para estilização */
 header{}
@@ -186,33 +185,46 @@ body.conteudo-centralizado .container-grande {
 
 .nave-card h4 {
     text-align: center;
-    font-size: 1.4em;
+    font-size: 1.1em;
     margin-top: 0;
 }
 
 .nave-imagem-placeholder {
     width: 100%;
-    height: 150px;
-    background-color: #0B0F29;
+    height: clamp(120px, 18vw, 200px);
     border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
+    object-fit: cover; /* ocupa todo o espaço mantendo proporção */
+    display: block;
     margin-bottom: 15px;
 }
 
 .nave-descricao {
-    flex-grow: 1;
+  flex-grow: 1; /* Faz a descrição ocupar o espaço disponível, alinhando os botões */
     font-size: 0.9em;
     line-height: 1.4;
+    text-align: left;
+    color: var(--cor-texto-secundario);
+    margin-top: 10px;
+    margin-bottom: 15px;
+    font-family: 'Gotham Book', sans-serif;
 }
 
 .nave-stats {
-    margin-top: 15px;
+   margin-top: auto; /* Garante que os stats fiquem alinhados com a parte de baixo */
     padding-top: 15px;
-    border-top: 1px solid #4a6fce;
-    font-size: 1em;
+    border-top: 1px solid var(--cor-primaria-ui);
+    font-size: 0.7em;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.modulos-stats{
+ margin-top: auto; /* Garante que os stats fiquem alinhados com a parte de baixo */
+    padding-top: 5px;
+    border-top: 1px solid var(--cor-primaria-ui);
+    font-size: 0.7em;
+    text-align: left;
+    line-height: 1.5;
 }
 
 .nave-card .botao {
@@ -295,7 +307,7 @@ body.conteudo-centralizado .container-grande {
 }
 
 .modulo-imagem-container {
-    height: 120px;
+    height: clamp(100px, 22vw, 150px);
     background-color: #0B0F29;
     border-radius: 8px;
     margin-bottom: 15px;
@@ -308,12 +320,13 @@ body.conteudo-centralizado .container-grande {
 .modulo-imagem-container img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* preenche sem distorcer; pode haver pequeno corte */
 }
 
 .modulo-info {
-    flex-grow: 1;
+    flex-grow: 0.2;
 }
+
 
 .botao-modulo {
     width: 100%;
@@ -321,7 +334,7 @@ body.conteudo-centralizado .container-grande {
     margin-top: 10px;
     border: none;
     border-radius: 5px;
-    background-color: #4a6fce;
+    background-color: #7FB500;
     color: white;
     cursor: pointer;
     font-size: 1em;
@@ -329,7 +342,8 @@ body.conteudo-centralizado .container-grande {
 }
 
 .botao-modulo:hover {
-    background-color: #6a8ee8;
+    background-color: #fff;
+    color:#7FB500 ;
 }
 
 .botao-modulo.selecionado {
@@ -468,14 +482,19 @@ body.conteudo-centralizado .container-grande {
     max-height: 75vh;
 }
 
+/* Exibir apenas a primeira fileira de cards na página de seleção de módulos */
+.selecao-modulos .cards-scroll-inner {
+    max-height: clamp(280px, 32vh, 360px); /* limita à altura de uma linha de cards */
+}
+
 .modulo-card.compacto {
     padding: 12px;                /* Um pouco menor */
     width: 200px;                 /* Cards menores */
 }
 
 .modulo-card.compacto h4 {
-    margin-bottom: 8px;
-    font-size: 1em;
+    margin-bottom: 3px;
+    font-size: 0.8em;
 }
 
 .modulo-card.compacto p {
@@ -484,7 +503,7 @@ body.conteudo-centralizado .container-grande {
 }
 
 .modulo-card.compacto .modulo-imagem-container {
-    height: 100px;                /* Imagem um pouco menor */
+    height: clamp(80px, 20vw, 120px);
     margin-bottom: 12px;
 }
 
@@ -521,6 +540,25 @@ body.conteudo-centralizado.selecao-modulos {
 /* Diminui a margem superior do container apenas nesta página */
 .selecao-modulos .container-grande {
     margin-top: clamp(2px, 0.8vh, 8px);
+}
+
+/* Redução sutil: cards e títulos levemente menores mantendo o design */
+.selecao-modulos .modulo-card {
+    width: 210px;            /* antes: 220px */
+    padding: 14px;           /* antes: 15px */
+}
+
+.selecao-modulos .modulo-card h4 {
+    font-size: clamp(0.8rem, 2.1vw, 0.8rem); /* redução suave e responsiva */
+}
+
+.selecao-modulos .modulo-imagem-container {
+    height: clamp(94px, 21vw, 140px); /* mantém proporção, ligeiramente menor */
+}
+
+#texto-Montagem{
+  font-family: 'Gotham Book';
+    font-size: 1.5em;
 }
 
 /* ===== Responsivo: ajustes para tablets e celulares ===== */

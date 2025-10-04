@@ -13,14 +13,14 @@
       <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
     <div class="container-grande">
-      <h2>Missão: {{ destino.capitalize() }}</h2>
+      <h2 id = texto-Montagem>Missão: {{ destino.capitalize() }}</h2>
       <h3>Escolha sua Nave de Transporte</h3>
 
       <div class="naves-container naves-nowrap">
         {% for id, nave in naves.items() %}
         <div class="nave-card">
           <h4>{{ nave.nome }}</h4>
-          <div class="nave-imagem-placeholder">IMAGEM</div>
+          <img class="nave-imagem-placeholder" src="{{ url_for('static', filename='imagens/' + nave.imagem) }}" alt="{{ nave.nome }}">
           <p class="nave-descricao">{{ nave.descricao }}</p>
           <div class="nave-stats">
             <strong>Operador:</strong> {{ nave.operador }}<br />
