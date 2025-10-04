@@ -13,6 +13,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const modulosCards = document.querySelectorAll('.modulo-card');
 
+    // Filtro por texto e expansão do container (somente na página de seleção de módulos)
+    const filtroInput = document.getElementById('filtro-modulos');
+    const containerModulos = document.getElementById('container-modulos');
+    const toggleBtn = document.getElementById('toggle-modulos');
+
+    if (filtroInput) {
+        filtroInput.addEventListener('input', function() {
+            const termo = this.value.trim().toLowerCase();
+            modulosCards.forEach(card => {
+                const nome = (card.querySelector('h4')?.textContent || '').toLowerCase();
+                card.style.display = nome.includes(termo) ? '' : 'none';
+            });
+        });
+    }
+
+    if (toggleBtn && containerModulos) {
+        toggleBtn.addEventListener('click', function() {
+            containerModulos.classList.toggle('expanded');
+            const expanded = containerModulos.classList.contains('expanded');
+            this.innerText = expanded ? 'Reduzir' : 'Expandir';
+            this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+    }
+
 function atualizarSumario() {
     spanMassaTotal.innerText = massaAtual;
 

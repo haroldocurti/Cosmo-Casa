@@ -2,6 +2,24 @@
    1. ESTILOS GERAIS E BASE
    ========================================================================== */
 
+/* Importação da fonte Korataki */
+@font-face {
+    font-family: 'Korataki';
+    src: url('../fontes/korataki.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Importação da fonte Gotham Book */
+@font-face {
+    font-family: 'Gotham Book';
+    src: url('../fontes/Gotham-Book.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
     background:linear-gradient(#7FB500, #000);/* Azul escuro espacial */
     color: white;
@@ -13,10 +31,33 @@ body {
     margin: 0;
 }
 
-h1, h2 {
-    font-size: 3em;
+/* Layout específico quando queremos empilhar logo e conteúdo abaixo */
+body.conteudo-centralizado {
+    display: flex;
+    flex-direction: column;       /* Empilha header acima e cards abaixo */
+    align-items: center;          /* Centraliza horizontalmente */
+    justify-content: flex-start;  /* Alinha no topo verticalmente */
+    min-height: 100vh;
+    padding-top: 16px;
 }
 
+h1, h2, h3, h5, h6 {
+    font-size: 2em;
+    font-family: 'korataki', Arial, sans-serif;
+}
+
+h4{
+    font-family: 'korataki', Arial, sans-serif;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: var(--cor-texto-secundario);
+    line-height: 1.5;
+    text-align: center;
+    font-size: 20px;
+
+}
+/* Evita restringir o header; usamos .brand-header para estilização */
+header{}
 /* ==========================================================================
    2. COMPONENTES REUTILIZÁVEIS
    ========================================================================== */
@@ -31,6 +72,11 @@ h1, h2 {
     text-align: center;
 }
 
+/* Empurra levemente o conteúdo para baixo quando há header acima */
+body.conteudo-centralizado .container-grande {
+    margin-top: clamp(12px, 4vh, 28px);
+}
+
 .botao {
     display: inline-block;
     margin-top: 20px;
@@ -43,7 +89,13 @@ h1, h2 {
 }
 
 .botao:hover {
-    background-color: #6a8ee8;
+    background-color: #ffff; /* Amarelo vibrante ao passar o mouse */
+    color: #7FB500;
+}
+
+/* Classe utilitária para aplicar Gotham Book */
+.font-gotham {
+    font-family: 'Gotham Book', Arial, sans-serif;
 }
 
 /* ==========================================================================
@@ -61,6 +113,24 @@ h1, h2 {
 .logo:hover {
     transform: scale(1.1);
 }
+
+/* --- Cabeçalho da marca na Seleção --- */
+.brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.brand-logo {
+    max-width: 220px;
+    width: clamp(120px, 24vw, 220px); /* Proporção adequada e responsiva */
+    height: auto;
+    padding-bottom: 0;
+    filter: drop-shadow(0 2px 6px rgba(255,255,255,0.15));
+}
+
 
 /* --- Tela de Seleção de Missão --- */
 .missoes-container {
@@ -83,15 +153,14 @@ h1, h2 {
     color: var(--cor-texto-secundario);
     margin-top: 10px;
     margin-bottom: 15px;
-    src: url('../fontes/korataki.otf');
-    font-family: 'korataki', sans-serif;
+    font-family: 'Gotham Book', sans-serif;
 }
 
 .missao-stats {
     margin-top: auto; /* Garante que os stats fiquem alinhados com a parte de baixo */
     padding-top: 15px;
     border-top: 1px solid var(--cor-primaria-ui);
-    font-size: 0.9em;
+    font-size: 0.7em;
     text-align: left;
     line-height: 1.5;
 }
@@ -100,7 +169,7 @@ h1, h2 {
     display: flex;
     justify-content: center;
     gap: 30px;
-    margin-top: 40px;
+    margin-top: 24px;
     flex-wrap: wrap;
 }
 
@@ -203,7 +272,7 @@ h1, h2 {
 }
 
 .modulo-card {
-    background-color: #1c2142;
+    background-color: #000;
     padding: 15px;
     border-radius: 10px;
     width: 220px;
@@ -367,4 +436,115 @@ h1, h2 {
 
 .status-avariado {
     color: #e74c3c; /* Vermelho */
+}
+
+/* ===== Ajustes solicitados: seleção de módulos compacta e rolagem interna ===== */
+.modulos-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+#filtro-modulos {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #4a6fce;
+    background-color: #0B0F29;
+    color: #aeb8de;
+    min-width: 220px;
+}
+
+.cards-scroll-inner {
+    gap: 16px;
+    align-content: flex-start;
+    max-height: 58vh;             /* Scroll interno ao invés da página */
+    overflow-y: auto;
+    padding-right: 6px;           /* Espaço para a barra de rolagem */
+}
+
+.cards-scroll-inner.expanded {
+    max-height: 75vh;
+}
+
+.modulo-card.compacto {
+    padding: 12px;                /* Um pouco menor */
+    width: 200px;                 /* Cards menores */
+}
+
+.modulo-card.compacto h4 {
+    margin-bottom: 8px;
+    font-size: 1em;
+}
+
+.modulo-card.compacto p {
+    margin: 4px 0;
+    font-size: 0.85em;            /* Tipografia levemente menor */
+}
+
+.modulo-card.compacto .modulo-imagem-container {
+    height: 100px;                /* Imagem um pouco menor */
+    margin-bottom: 12px;
+}
+
+/* Evitar scroll da página inteira apenas na seleção de módulos */
+body.conteudo-centralizado.selecao-modulos {
+    overflow: auto; /* Permite alcançar o fim da página */
+}
+
+/* Mantém os cards em uma única linha na montagem com scroll horizontal */
+.naves-nowrap {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Correções de posicionamento: aproximar módulos do topo da seção ===== */
+/* Reduz a margem inferior do sumário para aproximar os cards */
+.selecao-modulos .sumario-carga {
+    margin-bottom: 10px;
+}
+
+/* Reduz a margem inferior da info da nave */
+.selecao-modulos .info-nave {
+    margin-bottom: 10px;
+}
+
+/* Ajusta margens de títulos para diminuir espaçamento vertical */
+.selecao-modulos h2,
+.selecao-modulos h3 {
+    margin-top: 6px;
+    margin-bottom: 8px;
+}
+
+/* Diminui a margem superior do container apenas nesta página */
+.selecao-modulos .container-grande {
+    margin-top: clamp(2px, 0.8vh, 8px);
+}
+
+/* ===== Responsivo: ajustes para tablets e celulares ===== */
+@media (max-width: 1024px) {
+    .brand-logo { width: clamp(140px, 24vw, 220px); }
+    .container-grande { width: min(92%, 1100px); }
+    .cards-scroll-inner { max-height: 62vh; }
+}
+
+@media (max-width: 768px) {
+    .container-grande { width: 94%; }
+    .modulos-controls { flex-wrap: wrap; }
+    #filtro-modulos { min-width: 180px; }
+    .modulo-card { width: calc(50% - 12px); }
+    .modulo-card.compacto { width: calc(50% - 12px); }
+    .modulo-card.compacto .modulo-imagem-container { height: 90px; }
+    .sumario-carga p { font-size: 1.2em; }
+}
+
+@media (max-width: 480px) {
+    .brand-logo { width: clamp(120px, 40vw, 180px); }
+    .container-grande { width: 96%; }
+    .modulo-card, .modulo-card.compacto { width: 100%; }
+    .modulo-card.compacto .modulo-imagem-container { height: 80px; }
+    .botao, .botao-modulo { font-size: 0.95em; }
+    .cards-scroll-inner { max-height: none; } /* Em telas muito pequenas, prioriza scroll da página */
 }
