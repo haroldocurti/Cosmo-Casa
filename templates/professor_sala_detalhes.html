@@ -153,10 +153,8 @@
         </a>
         
         <header class="room-header">
-            <!-- Título principal com o desafio -->
-        <div>
-            <div class="challenge-title-section">
-                <h1 class="challenge-title">
+            <div class="room-left">
+                <h1 class="room-title">
                     {% if sala.desafios %}
                         {{ sala.desafios[0] }}
                     {% else %}
@@ -164,19 +162,22 @@
                     {% endif %}
                 </h1>
                 <div class="room-subtitle">
-                    <span class="room-destination">{{ sala.destino }}</span>
+                    <span class="room-destination">Destino: {{ sala.destino }}</span>
                     <div class="room-code-section">
-                        <div class="room-code-display" id="share-code">{{ sala.codigo_sala }}</div>
-                        <button class="share-btn" onclick="copiarCodigo()">
-                            &#x1F4CB; Copiar
-                        </button>
-                        </div>
+                        <span class="botao" id="share-code">{{ sala.codigo_sala }}</span>
+                        <button class="botao" type="botao" onclick="copiarCodigo()">Compartilhar</button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Grid de informações compacto -->
-            <div class="room-info-grid">
+            <div class="room-right">
+                <button class="botao" type="button">Editar</button>
+                <button class="botao" type="button">Ver Alunos</button>
+                <button class="botao" type="button">Exportar</button>
+            </div>
+        </header>
+
+        <!-- Grid de informações compacto -->
+        <div class="room-info-grid">
                 <div class="info-card">
                     <div class="info-icon">&#x1F465;</div>
                     <span class="info-number">{{ sala.alunos|length }}</span>
@@ -204,9 +205,9 @@
         </header>
         
         <div class="tabs">
-            <button class="tab active" onclick="showTab('alunos')">Alunos</button>
-            <button class="tab" onclick="showTab('desafios')">Desafios</button>
-            <button class="tab" onclick="showTab('estatisticas')">Estatísticas</button>
+            <button class="botao" onclick="showTab('alunos')">Alunos</button>
+            <button class="botao" onclick="showTab('desafios')">Desafios</button>
+            <button class="botao" onclick="showTab('estatisticas')">Estatísticas</button>
         </div>
         
         <div id="tab-alunos" class="tab-content active">

@@ -5,24 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Entrar na Missão</title>
   <style>
-    body { background:linear-gradient(#7FB500, #000); color: #e8f1f8; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
-    .container { max-width: 640px; margin: 40px auto; padding: 24px; ; background: #000; border: 1px solid #1e293b; border-radius: 16px; }
-    h1 { margin: 0 0 8px; font-weight: 700; font-size: 24px; color: #e2e8f0; }
-    p { color: #94a3b8; }
+    /* Garante que o gradiente cobre pelo menos a viewport */
+    html, body { height: 100%; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: #e8f1f8;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+      /* Gradiente fixo cobre a tela toda (e rola bem) */
+      background: linear-gradient(180deg, #7FB500 0%, #000 100%) fixed;
+      background-attachment: fixed;
+      overflow-x: hidden; /* evita scroll horizontal inesperado */
+    }
+
+    /* (Opcional) Safari/iOS: reforço do gradiente com pseudo-elemento */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, #7FB500 0%, #000 100%);
+      /* sem blur/filtros para não gastar GPU */
+    }
+
+    /* Wrapper de página para centralizar o conteúdo verticalmente se desejar */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start; /* mude para center se quiser verticalmente centralizado */
+      justify-content: center;
+      padding: 40px 16px;
+      box-sizing: border-box;
+    }
+
+    /* Container, mantendo o look */
+    .container {
+      width: 100%;
+      max-width: 640px;
+      padding: 24px;
+      background: #000;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      box-sizing: border-box;
+    }
+
+    h1 { margin: 0 0 8px; font-weight: 700; font-size: 24px; color: #fff; font-family:'Korataki', Arial, sans-serif; }
+    p { color: #fff; font-family: 'Korataki', Arial, sans-serif; }
+
     .form-group { margin-top: 16px; }
     label { display: block; margin-bottom: 8px; color: #cbd5e1; }
-    input[type="text"] { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #334155; background: #0b1221; color: #e2e8f0; }
-    .error { background: #2d1b1b; color: #fecaca; border: 1px solid #7f1d1d; padding: 12px; border-radius: 12px; margin-top: 12px; }
-    .actions { margin-top: 20px; display: flex; gap: 12px; }
-    .btn { padding: 12px 16px; border-radius: 12px; border: 1px solid #334155; background: #0b1221; color: #e2e8f0; cursor: pointer; }
-    .btn-primary { background: #2563eb; border-color: #1d4ed8; }
-    .btn-primary:hover { background: #1d4ed8; }
+    input[type="text"] {
+      width: 95%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #fff;
+      background: #0b1221;
+      color: #e2e8f0;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .25);
+    }
+
+    .error {
+      background: #2d1b1b;
+      color: #fecaca;
+      border: 1px solid #7f1d1d;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: #0b1221;
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: background-color .2s, transform .05s;
+      text-decoration: none; /* garante visual nos links */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    
+    .btn-primary { background-color: #7FB500; }
+    .btn-primary:hover { background-color: #fff;
+     color:#7FB500; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Entrar na Missão</h1>
-    <p>Digite o código da sala fornecido pelo professor e seu nome exatamente como está no arquivo.</p>
+  <div class="page">
+    <div class="container">
+      <h1>Entrar na Missão</h1>
+      <p>Digite o código da sala fornecido pelo professor e seu nome exatamente como está no arquivo.</p>
 
     {% if erro %}
       <div class="error">{{ erro }}</div>
@@ -42,6 +124,7 @@
         <a class="btn" href="{{ url_for('index') }}">Voltar</a>
       </div>
     </form>
+    </div>
   </div>
 </body>
 </html>
