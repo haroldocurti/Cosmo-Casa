@@ -28,7 +28,7 @@
             ton<br />
             <strong>Perfil da Missão:</strong> {{ nave.perfil_missao }}
           </div>
-          <a href="{{ url_for('selecao_modulos', destino=destino, nave_id=id, codigo_sala=codigo_sala) }}" class="botao">Selecionar</a>
+          <a href="{{ url_for('professor.professor_registrar_desafio', destino=destino, nave_id=id, codigo_sala=codigo_sala) }}" class="botao">Selecionar</a>
         </div>
         {% endfor %}
       </div>

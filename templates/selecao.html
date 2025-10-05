@@ -25,7 +25,7 @@
                         <strong>{{ stat }}:</strong> {{ valor }}<br />
                     {% endfor %}
                 </div>
-                <a href="{{ url_for('montagem_transporte', destino=id, codigo_sala=codigo_sala) }}" class="botao">Analisar Transporte</a>
+        <a href="{{ url_for('missao.montagem_transporte', destino=id, codigo_sala=codigo_sala) }}" class="botao">Analisar Transporte</a>
             </div>
             {% endfor %}
 
