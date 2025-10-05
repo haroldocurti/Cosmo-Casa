@@ -1,4 +1,10 @@
 /* Estrutura Principal */
+:root {
+    /* --btn-green: #64ffda;
+    --btn-text: #0F172A;
+    /* --btn-hover-bg: #7fffea; */
+    /* --btn-hover-text: #0B1224; */ 
+}
 .main-container {
     width: 92%;
     max-width: 1000px; /* Mais compacto para desktop e mobile */
@@ -12,19 +18,115 @@
 .back-btn {
     display: inline-block;
     margin-bottom: 25px;
-    color: #64ffda;
+    color: #fff;
+    background-color: #000;
     text-decoration: none;
     font-weight: bold;
     font-size: 0.9rem;
+    border: 1px solid #000;
+    padding: 8px 14px;
+    border-radius: 8px;
 }
 
+back-btn:hover {
+    background-color: #fff;
+    color: #000;
+}
 /* Cabeçalho da Sala - Compacto */
 .room-header {
+    background: #000;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
     padding: 20px;
-    background: #000; /* Fundo preto nos containers */
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: #fff; /* Letras brancas */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.room-header .room-left {
+    display: grid;
+    gap: 10px;
+    min-width: 260px;
+    flex: 1 1 420px;
+}
+
+.room-header .room-title {
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.room-header .room-subtitle {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.room-header .room-destination {
+    color: #94A3B8;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.room-header .room-code-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.room-header .room-code-display {
+    background-color: #334155;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.room-header .share-btn {
+    background-color: var(--btn-green);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-green);
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.room-header .share-btn:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-bg);
+}
+
+.room-header .room-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.room-header .action-btn {
+    padding: 8px 12px;
+    background-color: #334155;
+    color: #e0e0e0;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.room-header .action-btn:hover {
+    background-color: #475569;
+    transform: translateY(-1px);
 }
 
 .challenge-title-section {
@@ -304,9 +406,11 @@
 
 /* Responsividade (compacto) */
 @media (max-width: 768px) {
-    .challenge-title {
-        font-size: 1.4rem;
-    }
+    .challenge-title { font-size: 1.4rem; }
+    .room-header { padding: 16px; gap: 16px; }
+    .room-header .room-title { font-size: 1.4rem; }
+    .room-header .room-subtitle { gap: 8px; }
+    .room-header .room-right { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .info-icon { font-size: 1.3rem; }
     .room-subtitle {
         flex-direction: column;
