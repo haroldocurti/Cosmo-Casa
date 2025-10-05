@@ -43,6 +43,7 @@ def dashboard():
                 except Exception:
                     desafios = []
                 salas.append({
+                    'id': d.get('id'),
                     'codigo': d.get('codigo_sala'),
                     'nome_sala': d.get('nome_sala'),
                     'destino': d.get('destino'),
@@ -82,6 +83,15 @@ def dashboard():
                 })
     except Exception:
         pass
+
+    # Popular ranking com base nas salas ativas
+    try:
+        if len(salas) == 1 and salas[0].get('id'):
+            ranking = db_manager.obter_ranking_sala(salas[0]['id'], limit=50)
+        elif len(salas) > 1:
+            ranking = db_manager.obter_ranking_salas_ativas(limit=100)
+    except Exception:
+        logging.exception('Falha ao obter ranking')
 
     return render_template('professor_dashboard.html', ranking=ranking, salas=salas, salas_inativas=salas_inativas)
 

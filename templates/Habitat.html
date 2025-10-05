@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cosmo Casa – Editor</title>
+<style>
+  :root{
+    --bg:#0f0f0f; --panel:#151515; --panel2:#101010;
+    --grid:#1a1a1a; --grid2:#141414; --stroke:#222;
+    --lime:#98ff3b; --lime2:#64e61b; --txt:#eef1f3; --muted:#a2aab0;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .app{height:100vh;display:grid;gap:10px;padding:10px;grid-template-columns:260px 1fr 300px}
+
+  /* painéis */
+  .panel{background:var(--panel);border:1px solid #1e1e1e;border-radius:6px;overflow:auto}
+  .logo{display:flex;align-items:center;gap:.6rem;padding:14px 14px;border-bottom:1px solid #1e1e1e}
+  .brand{font-weight:700;letter-spacing:.3px}
+  .section{padding:14px;border-top:1px solid #1e1e1e}
+  .section h4{margin:0 0 10px;font-size:.86rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+
+  /* paleta esquerda */
+  .palette{display:grid;gap:10px;grid-template-columns:repeat(4,1fr)}
+  .chip{background:var(--panel2);border:1px solid var(--stroke);border-radius:8px;height:58px;display:flex;align-items:center;justify-content:center;cursor:grab;position:relative;user-select:none}
+  .chip span{position:absolute;bottom:6px;left:6px;font-size:.68rem;color:#9aa3a7}
+  .conn-rect{width:44px;height:10px;border:3px solid var(--lime);border-radius:4px; background: var(--lime);}
+  .conn-bar{width:10px;height:44px;background:var(--lime);border-radius:3px}
+  .formats{grid-template-columns:repeat(3,1fr)}
+  .hex,.pent{width:52px;height:52px}
+  .hex svg,.pent svg{width:100%;height:100%}
+  .student{margin-top:8px;color:var(--lime);font-size:.82rem}
+
+  /* tabuleiro central com grade */
+  .board-wrap{background:var(--panel);border:1px solid #1e1e1e;border-radius:6px;overflow:hidden;position:relative}
+  .board{
+    position:absolute;inset:0;cursor:crosshair;
+    background:
+      repeating-linear-gradient(0deg, var(--grid2) 0 1px, transparent 1px 20px),
+      repeating-linear-gradient(90deg,var(--grid2) 0 1px, transparent 1px 20px),
+      repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 100px),
+      repeating-linear-gradient(90deg,var(--grid) 0 1px, transparent 1px 100px),
+      #0d0d0d;
+  }
+
+  /* peça no tabuleiro */
+  .piece{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+  .piece.select{outline:2px solid var(--lime2);outline-offset:2px;border-radius:10px}
+  .icon{position:absolute;width:38px;height:38px;object-fit:contain;pointer-events:none}
+
+  /* painel da direita */
+  .mod-list{display:flex;flex-direction:column;gap:6px;padding:8px 8px 14px}
+  .mod{background:#0f0f0f;border:1px solid #202020;color:#cfd6dc;padding:8px 10px;border-radius:6px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px}
+  .mod:hover{border-color:#2b2b2b;background:#121212}
+  .sw{width:14px;height:14px;border-radius:3px;background:var(--lime);opacity:.85}
+  .hint{margin:8px 14px 14px;color:#9aa3a7;font-size:.86rem;line-height:1.35}
+
+  @media (max-width:1100px){.app{grid-template-columns:220px 1fr 280px}.icon{width:32px;height:32px}}
+  @media (max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:auto 60vh auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Barra de navegação simples -->
+  <div style="position:fixed;top:10px;left:10px;z-index:10;display:flex;gap:8px">
+    {% if session.get('missao_destino') and session.get('missao_nave') %}
+      <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="mod" style="padding:6px 10px;">Voltar</a>
+    {% else %}
+      <a href="{{ url_for('tela_selecao') }}" class="mod" style="padding:6px 10px;">Voltar</a>
+    {% endif %}
+    <a href="{{ url_for('missao.ranking_rodada') }}" class="mod" style="padding:6px 10px;background:#121212;border-color:#2b2b2b">Finalizar o Game</a>
+  </div>
+  <!-- ESQUERDA -->
+  <aside class="panel">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M12 2l4 4-4 4-4-4 4-4zM4 14l4-4 4 4-4 4-4-4zm16 0l-4-4-4 4 4 4 4-4z"/>
+      </svg>
+      <div><div class="brand">Cosmo Casa</div><div style="font-size:.78rem;color:#9aa3a7">Editor de Habitat</div></div>
+    </div>
+
+    <div class="section">
+      <h4>Conexões</h4>
+      <div class="palette">
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="90"><div class="conn-rect"></div><span>90°</span></div>
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="0"><div class="conn-bar"></div><span>0°</span></div>
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="45"><div class="conn-bar" style="transform:rotate(45deg)"></div><span>45°</span></div>
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="135"><div class="conn-bar" style="transform:rotate(135deg)"></div><span>135°</span></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Formato do ambientes</h4>
+      <div class="palette formats">
+        <div class="chip draggable" draggable="true" data-type="module" data-shape="hex">
+          <div class="hex">
+            <svg viewBox="0 0 100 100" fill="none"><path d="M50 3 90 25 90 75 50 97 10 75 10 25Z" stroke="var(--lime)" stroke-width="6"/></svg>
+          </div>
+        </div>
+        <div class="chip draggable" draggable="true" data-type="module" data-shape="pent">
+          <div class="pent">
+            <svg viewBox="0 0 100 100" fill="none"><path d="M50 5 93 38 77 92 23 92 7 38Z" stroke="var(--lime)" stroke-width="6"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="student">Nome do Aluno<br><span style="color:#6adf34">IP da Sala</span></div>
+    </div>
+  </aside>
+
+  <!-- TABULEIRO -->
+  <main class="panel board-wrap">
+    <div id="board" class="board" tabindex="0"></div>
+  </main>
+
+  <!-- DIREITA -->
+  <aside class="panel">
+    <div class="section"><h4>Função dos ambientes</h4></div>
+    <div id="moduleList" class="mod-list">
+      <button class="mod" data-mod="suporte"><span class="sw"></span>Módulo Suporte à Vida</button>
+      <button class="mod" data-mod="habitacional"><span class="sw"></span>Habitacional Privado</button>
+      <button class="mod" data-mod="refeicoes"><span class="sw"></span>Alimentação e Refeições</button>
+      <button class="mod" data-mod="medico"><span class="sw"></span>Médico</button>
+      <button class="mod" data-mod="exercicios"><span class="sw"></span>Exercícios</button>
+      <button class="mod" data-mod="trabalho"><span class="sw"></span>Trabalho e Pesquisa</button>
+      <button class="mod" data-mod="armazenamento"><span class="sw"></span>Armazenamento</button>
+      <button class="mod" data-mod="sanitario"><span class="sw"></span>Sanitário e Higiene</button>
+      <button class="mod" data-mod="blindagem"><span class="sw"></span>Blindagem/Proteção</button>
+      <button class="mod" data-mod="inflavel"><span class="sw"></span>Inflável Expansível</button>
+      <button class="mod" data-mod="airlock"><span class="sw"></span>Airlock</button>
+      <button class="mod" data-mod="tesserae"><span class="sw"></span>Estrutural Modular (TESSERAE)</button>
+      <button class="mod" data-mod="cultura"><span class="sw"></span>Cultura e Lazer</button>
+      <button class="mod" data-mod="robotico"><span class="sw"></span>Robótico Const./Manut.</button>
+      <button class="mod" data-mod="hidroponia"><span class="sw"></span>Produção de Alimentos</button>
+      <button class="mod" data-mod="controle"><span class="sw"></span>Controle e Comunicação</button>
+      <button class="mod" data-mod="multifuncional"><span class="sw"></span>Módulo Multifuncional</button>
+      <button class="mod" data-mod="imp3d"><span class="sw"></span>Impressão 3D/Manufatura</button>
+    </div>
+    <div class="hint">
+      • Arraste **conexões** e **formatos** para o tabuleiro.<br>
+      • **Clique** em um módulo à direita para aplicar a **imagem do módulo** na peça **selecionada**.<br>
+      • Dica: pressione **DEL** para remover a peça selecionada.
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- CONFIG: onde estão as IMAGENS dos módulos ---------- */
+/* Troque os paths pelos seus arquivos (.svg/.png) em ./icons/     */
+const ICON_SRC = {
+  suporte:        '{{ url_for('missao.icons', filename='suportevida.svg') }}',
+  habitacional:   '{{ url_for('missao.icons', filename='privado.svg') }}',
+  refeicoes:      '{{ url_for('missao.icons', filename='refeicao.svg') }}',
+  medico:         '{{ url_for('missao.icons', filename='medicina.svg') }}',
+  exercicios:     '{{ url_for('missao.icons', filename='exercicio.svg') }}',
+  trabalho:       '{{ url_for('missao.icons', filename='pesquisa.svg') }}',
+  armazenamento:  '{{ url_for('missao.icons', filename='armazenagem.svg') }}',
+  sanitario:      '{{ url_for('missao.icons', filename='sanitario.svg') }}',
+  blindagem:      '{{ url_for('missao.icons', filename='blindagem.svg') }}',
+  inflavel:       '{{ url_for('missao.icons', filename='inflavel.svg') }}',
+  airlock:        '{{ url_for('missao.icons', filename='airlock.svg') }}',
+  tesserae:       '{{ url_for('missao.icons', filename='tesserea.svg') }}',
+  cultura:        '{{ url_for('missao.icons', filename='cultura.svg') }}',
+  robotico:       '{{ url_for('missao.icons', filename='robotica.svg') }}',
+  hidroponia:     '{{ url_for('missao.icons', filename='hidroponia.svg') }}',
+  controle:       '{{ url_for('missao.icons', filename='controle.svg') }}',
+  multifuncional: '{{ url_for('missao.icons', filename='multifuncional.svg') }}',
+  imp3d:          '{{ url_for('missao.icons', filename='impressora.svg') }}'
+};
+
+/* ---------- Drag & Drop da paleta ---------- */
+const board = document.getElementById('board');
+let currentSelection = null;
+
+document.querySelectorAll('.draggable').forEach(el=>{
+  el.addEventListener('dragstart', e=>{
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      type: el.dataset.type,
+      rot: el.dataset.rot || null,
+      shape: el.dataset.shape || null
+    }));
+  });
+});
+board.addEventListener('dragover', e=> e.preventDefault());
+board.addEventListener('drop', e=>{
+  e.preventDefault();
+  const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+  const x = e.offsetX, y = e.offsetY;
+  createPiece(data, x, y);
+});
+
+/* ---------- Criar peça no tabuleiro ---------- */
+function createPiece(data, x, y){
+  const el = document.createElement('div');
+  el.className = 'piece';
+  el.style.left = x+'px'; el.style.top = y+'px';
+  el.dataset.kind = data.type;
+
+  if(data.type==='conn'){
+    const child = document.createElement('div');
+    if(data.rot==='90'){ child.className='conn-rect'; }
+    else { child.className='conn-bar'; }
+    el.appendChild(child);
+    if(data.rot!=90) el.style.transform += ` rotate(${data.rot}deg)`;
+  }else if(data.type==='module'){
+    // desenha forma (hex/pent)
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 100 100');
+    svg.style.width='100px'; svg.style.height='100px';
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke','var(--lime)');
+    p.setAttribute('stroke-width','6');
+    p.setAttribute('d', data.shape==='hex'
+      ? 'M50 3 90 25 90 75 50 97 10 75 10 25Z'
+      : 'M50 5 93 38 77 92 23 92 7 38Z'
+      //50 23
+    );
+    svg.appendChild(p);
+    el.appendChild(svg);
+
+    // reservado para a IMAGEM do módulo
+    const img = document.createElement('img');
+    img.className = 'icon';
+    el.appendChild(img);
+  }
+
+  el.addEventListener('pointerdown', startDrag);
+  el.addEventListener('click', ()=> selectPiece(el));
+  board.appendChild(el);
+  selectPiece(el);
+}
+
+/* ---------- Seleção e arraste das peças ---------- */
+function selectPiece(el){
+  if(currentSelection) currentSelection.classList.remove('select');
+  currentSelection = el;
+  if(currentSelection) currentSelection.classList.add('select');
+}
+let dragging=null, dx=0, dy=0;
+function startDrag(e){
+  dragging = e.currentTarget;
+  const r = dragging.getBoundingClientRect();
+  const br = board.getBoundingClientRect();
+  dx = e.clientX - r.left; dy = e.clientY - r.top;
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', endDrag, {once:true});
+}
+function onMove(e){
+  if(!dragging) return;
+  const br = board.getBoundingClientRect();
+  dragging.style.left = (e.clientX - br.left - dx + dragging.offsetWidth/2) + 'px';
+  dragging.style.top  = (e.clientY - br.top  - dy + dragging.offsetHeight/2) + 'px';
+}
+function endDrag(){
+  document.removeEventListener('pointermove', onMove);
+  dragging=null;
+}
+
+/* ---------- Aplicar IMAGEM do módulo ao clicar na lista ---------- */
+document.getElementById('moduleList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.mod');
+  if(!btn) return;
+  if(!currentSelection){
+    alert('Selecione um módulo no tabuleiro para aplicar a imagem.');
+    return;
+  }
+  if(currentSelection.dataset.kind!=='module'){
+    alert('A imagem só pode ser aplicada em um módulo (hexágono/pentágono).');
+    return;
+  }
+  const key = btn.dataset.mod;
+  const src = ICON_SRC[key];
+  if(!src){ alert('Imagem não configurada para: '+key); return; }
+  const img = currentSelection.querySelector('img.icon');
+  img.src = src;           // ← usa seu arquivo .svg/.png
+  img.alt = key;
+});
+
+/* ---------- Delete: remove peça selecionada ---------- */
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='Delete' && currentSelection){
+    currentSelection.remove(); currentSelection=null;
+  }
+});
+</script>
+</body>
+</html>

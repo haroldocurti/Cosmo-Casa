@@ -159,6 +159,22 @@ class DatabaseManager:
                 columns = [description[0] for description in cursor.description]
                 return dict(zip(columns, sala))
             return None
+
+    def buscar_sala_por_id(self, sala_id):
+        """Busca uma sala pelo ID (inclui inativas), útil para sessão do aluno."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.*, p.nome as professor_nome
+                FROM salas_virtuais s
+                LEFT JOIN professores p ON s.professor_id = p.id
+                WHERE s.id = ?
+            ''', (sala_id,))
+            sala = cursor.fetchone()
+            if sala:
+                columns = [description[0] for description in cursor.description]
+                return dict(zip(columns, sala))
+            return None
     
     def adicionar_aluno(self, sala_id, nome, email=None):
         """Adiciona um aluno à sala"""
@@ -295,9 +311,7 @@ class DatabaseManager:
 
     # --- Ranking ---
     def obter_ranking_sala(self, sala_id, limit=50):
-        """Retorna ranking de alunos por sala, somando pontuações das respostas válidas.
-        Exclui alunos marcados com coluna de exclusão (compatível com bancos antigos).
-        """
+        """Retorna ranking de alunos por sala com total de pontos, tentativas e concluídos."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             # Detectar coluna de exclusão no ranking
@@ -306,9 +320,12 @@ class DatabaseManager:
             exclude_col = 'excluir_ranking' if 'excluir_ranking' in cols else ('exclude_ranking' if 'exclude_ranking' in cols else None)
 
             base_sql = (
-                "SELECT a.id AS aluno_id, a.nome AS nome, COALESCE(SUM(r.pontuacao), 0) AS total "
+                "SELECT a.id AS aluno_id, a.nome AS nome, "
+                "COALESCE(SUM(CASE WHEN (r.correta IS NULL OR r.correta = 1) THEN r.pontuacao ELSE 0 END), 0) AS total, "
+                "COUNT(r.id) AS tentativas, "
+                "COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS concluidos "
                 "FROM alunos a "
-                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND r.sala_id = a.sala_id AND (r.correta IS NULL OR r.correta = 1) "
+                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND r.sala_id = a.sala_id "
                 "WHERE a.sala_id = ? "
             )
             if exclude_col:
@@ -317,12 +334,10 @@ class DatabaseManager:
 
             cursor.execute(base_sql, (sala_id, limit))
             rows = cursor.fetchall()
-            return [{'id': r[0], 'nome': r[1], 'total': r[2]} for r in rows]
+            return [{'id': r[0], 'nome': r[1], 'total': r[2], 'tentativas': r[3], 'concluidos': r[4]} for r in rows]
 
     def obter_ranking_salas_ativas(self, limit=100):
-        """Ranking consolidado das salas ativas (quando há mais de uma ativa).
-        Soma pontuação por aluno em qualquer sala ativa, excluindo os marcados.
-        """
+        """Ranking consolidado das salas ativas com total de pontos, tentativas e concluídos."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             # Detectar coluna de exclusão no ranking
@@ -331,10 +346,13 @@ class DatabaseManager:
             exclude_col = 'excluir_ranking' if 'excluir_ranking' in cols else ('exclude_ranking' if 'exclude_ranking' in cols else None)
 
             base_sql = (
-                "SELECT a.id AS aluno_id, a.nome AS nome, COALESCE(SUM(r.pontuacao), 0) AS total "
+                "SELECT a.id AS aluno_id, a.nome AS nome, "
+                "COALESCE(SUM(CASE WHEN (r.correta IS NULL OR r.correta = 1) THEN r.pontuacao ELSE 0 END), 0) AS total, "
+                "COUNT(r.id) AS tentativas, "
+                "COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS concluidos "
                 "FROM alunos a "
                 "JOIN salas_virtuais s ON s.id = a.sala_id AND s.ativa = 1 "
-                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND (r.correta IS NULL OR r.correta = 1) "
+                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id "
                 "WHERE 1 = 1 "
             )
             if exclude_col:
@@ -343,7 +361,7 @@ class DatabaseManager:
 
             cursor.execute(base_sql, (limit,))
             rows = cursor.fetchall()
-            return [{'id': r[0], 'nome': r[1], 'total': r[2]} for r in rows]
+            return [{'id': r[0], 'nome': r[1], 'total': r[2], 'tentativas': r[3], 'concluidos': r[4]} for r in rows]
 
 
 # Instância compartilhada
