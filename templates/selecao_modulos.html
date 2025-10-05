@@ -67,7 +67,7 @@
             {% for id, modulo in modulos.items() %}
             <div class="modulo-card compacto" data-id="{{ id }}" data-massa="{{ modulo.massa }}" data-energia="{{ modulo.energia }}" data-agua="{{ modulo.agua }}" data-tooltip="{{ modulo.obs }}">
                 <div class="modulo-imagem-container">
-                    <img src="{{ url_for('static', filename='imagens/modulos/' + modulo.imagem) }}" alt="{{ modulo.nome }}">
+                    <img src="{{ url_for('static', filename='imagens/' + modulo.imagem) }}" alt="{{ modulo.nome }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='imagens/Multifuncional.svg') }}'">
                 </div>
                 <div class="modulo-info">
                     <h4 id="modulo-titulo-{{ id }}">{{ modulo.nome }}</h4>

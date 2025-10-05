@@ -1,7 +1,7 @@
 # app.py
 import math
 import logging
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
 import random
 import json
 import sqlite3
@@ -192,29 +192,29 @@ def calcular_carga_maxima_para_destino(nave, destino, distancia_destino):
 # --- BANCO DE DADOS DOS MÓDULOS (com imagens e observações para tooltips) ---
 MODULOS_HABITAT = {
     'suporte_vida': {"nome": "Suporte à Vida", "massa": 800, "energia": 15, "agua": 50, 
-                     "imagem": "suporte_vida.png", "obs": "Essencial. Conecta-se ao Habitacional, Sanitário e Produção de Alimentos."},
+                     "imagem": "suporte_vida.svg", "obs": "Essencial. Conecta-se ao Habitacional, Sanitário e Produção de Alimentos."},
     'habitacional': {"nome": "Habitacional Privado", "massa": 200, "energia": 1, "agua": 5, 
-                     "imagem": "habitacional.png", "obs": "Acomodações para a tripulação. Pode ser integrado com Lazer."},
+                     "imagem": "Privado.svg", "obs": "Acomodações para a tripulação. Pode ser integrado com Lazer."},
     'alimentacao': {"nome": "Alimentação e Refeições", "massa": 300, "energia": 3, "agua": 20, 
-                    "imagem": "alimentacao.png", "obs": "Área de preparo e consumo de alimentos."},
+                    "imagem": "Cultura.svg", "obs": "Área de preparo e consumo de alimentos."},
     'medico': {"nome": "Módulo Médico", "massa": 250, "energia": 2, "agua": 5, 
-               "imagem": "medico.png", "obs": "Para emergências médicas e monitoramento da saúde da tripulação."},
+               "imagem": "Medicina.svg", "obs": "Para emergências médicas e monitoramento da saúde da tripulação."},
     'exercicios': {"nome": "Exercícios", "massa": 400, "energia": 5, "agua": 2, 
-                   "imagem": "exercicios.png", "obs": "Equipamentos para mitigar a perda de massa muscular e óssea."},
+                   "imagem": "Exercicio.svg", "obs": "Equipamentos para mitigar a perda de massa muscular e óssea."},
     'pesquisa': {"nome": "Trabalho e Pesquisa", "massa": 350, "energia": 4, "agua": 2, 
-                 "imagem": "pesquisa.png", "obs": "Laboratório para condução de experimentos científicos."},
+                 "imagem": "Pesquisa.svg", "obs": "Laboratório para condução de experimentos científicos."},
     'armazenamento': {"nome": "Armazenamento", "massa": 150, "energia": 0.5, "agua": 0, 
-                      "imagem": "armazenamento.png", "obs": "Estoque de suprimentos, ferramentas e amostras."},
+                      "imagem": "Armazenagem.svg", "obs": "Estoque de suprimentos, ferramentas e amostras."},
     'sanitario': {"nome": "Sanitário e Higiene", "massa": 250, "energia": 2, "agua": 30, 
-                  "imagem": "sanitario.png", "obs": "Banheiro, chuveiro e sistemas de reciclagem de água."},
+                  "imagem": "Sanitário.svg", "obs": "Banheiro, chuveiro e sistemas de reciclagem de água."},
     'inflavel': {"nome": "Inflável Expansível", "massa": 500, "energia": 2, "agua": 5, 
-                 "imagem": "inflavel.png", "obs": "Módulo de grande volume quando inflado, altamente versátil."},
+                 "imagem": "Inflavel.svg", "obs": "Módulo de grande volume quando inflado, altamente versátil."},
     'airlock': {"nome": "Airlock", "massa": 300, "energia": 2, "agua": 2, 
-                "imagem": "airlock.png", "obs": "Câmara de descompressão para atividades extraveiculares (EVAs)."},
+                "imagem": "AirLock.svg", "obs": "Câmara de descompressão para atividades extraveiculares (EVAs)."},
     'hidroponia': {"nome": "Produção de Alimentos (Hidroponia)", "massa": 500, "energia": 8, "agua": 40, 
-                   "imagem": "hidroponia.png", "obs": "Cultivo de plantas em ambiente controlado para suplementar a dieta."},
+                   "imagem": "Hidroponia.svg", "obs": "Cultivo de plantas em ambiente controlado para suplementar a dieta."},
     'impressao3d': {"nome": "Impressão 3D/Manufatura", "massa": 300, "energia": 5, "agua": 2, 
-                    "imagem": "impressao3d.png", "obs": "Fabricação de peças de reposição e ferramentas sob demanda."}
+                    "imagem": "Impressora.svg", "obs": "Fabricação de peças de reposição e ferramentas sob demanda."}
 }
 
 # --- BANCO DE DADOS DE EVENTOS ALEATÓRIOS ---
@@ -313,6 +313,36 @@ def tela_selecao():
 app.register_blueprint(professor_bp, url_prefix='/professor')
 app.register_blueprint(aluno_bp)
 app.register_blueprint(missao_bp)
+
+# Alias estático: atender /static/images/* usando arquivos de static/imagens/*
+IMAGENS_ALIAS_MAP = {
+    # módulos principais
+    'suporte_vida.png': 'suporte_vida.svg',
+    'habitacional.png': 'Privado.svg',
+    'alimentacao.png': 'Cultura.svg',
+    'medico.png': 'Medicina.svg',
+    'exercicios.png': 'Exercicio.svg',
+    'pesquisa.png': 'Pesquisa.svg',
+    'armazenamento.png': 'Armazenagem.svg',
+    'sanitario.png': 'Sanitário.svg',
+    'inflavel.png': 'Inflavel.svg',
+    'airlock.png': 'AirLock.svg',
+    'hidroponia.png': 'Hidroponia.svg',
+    'impressao3d.png': 'Impressora.svg',
+    # naves e destinos (caso algum front use images/)
+    'falcon9.png': 'Falcon9.png',
+    'gslv.png': 'LVM3_M3.png',
+    'longmarch8a.png': 'foguete-longa-marcha.png',
+    'lua.png': 'Lua.png',
+    'marte.png': 'Marte.png',
+    'exoplaneta.png': 'Exoplaneta.png'
+}
+
+@app.route('/static/images/<path:filename>')
+def static_images_alias(filename):
+    # Mapeia nomes conhecidos .png para os .svg reais na pasta 'imagens'
+    alvo = IMAGENS_ALIAS_MAP.get(filename, filename)
+    return send_from_directory(os.path.join(app.root_path, 'static', 'imagens'), alvo)
 
 # Alias de acesso direto à sala para compatibilidade
 @app.route('/sala/<codigo_sala>', endpoint='sala_detalhes_alias')
