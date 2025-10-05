@@ -16,7 +16,7 @@
         }
         
         .card {
-            background: rgba(30, 40, 70, 0.8);
+            background: #000; /* Fundo preto nos cards */
             border-radius: 12px;
             padding: 16px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -54,7 +54,7 @@
         }
         
         .card-content {
-            color: rgba(255, 255, 255, 0.8);
+            color: #fff; /* Letras brancas */
         }
         
         .card-footer {
@@ -154,6 +154,7 @@
         
         <header class="room-header">
             <!-- Título principal com o desafio -->
+        <div>
             <div class="challenge-title-section">
                 <h1 class="challenge-title">
                     {% if sala.desafios %}
@@ -169,6 +170,7 @@
                         <button class="share-btn" onclick="copiarCodigo()">
                             &#x1F4CB; Copiar
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -19,6 +19,10 @@ missao_bp = Blueprint('missao', __name__)
 def montagem_transporte(destino):
     """Tela de seleção de naves, recebendo o destino como parâmetro."""
     try:
+        # Validação: impedir acesso direto sem selecionar planeta
+        destino_norm = (destino or '').lower()
+        if destino_norm not in {'lua', 'marte', 'exoplaneta'}:
+            return redirect(url_for('tela_selecao', codigo_sala=request.args.get('codigo_sala')))
         return render_template('montagem_transporte.html', naves=NAVES_ESPACIAIS, destino=destino, codigo_sala=request.args.get('codigo_sala'))
     except Exception:
         logging.exception("Falha ao renderizar montagem_transporte")
@@ -29,6 +33,10 @@ def montagem_transporte(destino):
 def selecao_modulos(destino, nave_id):
     """Tela de seleção de módulos para a missão."""
     try:
+        # Validação: destino precisa ser válido
+        destino_norm = (destino or '').lower()
+        if destino_norm not in {'lua', 'marte', 'exoplaneta'}:
+            return redirect(url_for('tela_selecao', codigo_sala=request.args.get('codigo_sala')))
         nave_selecionada = NAVES_ESPACIAIS.get(nave_id)
         if not nave_selecionada:
             return "Nave não encontrada!", 404

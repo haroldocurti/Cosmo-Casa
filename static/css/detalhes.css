@@ -1,10 +1,10 @@
 /* Estrutura Principal */
 .main-container {
-    width: 95%;
-    max-width: 980px; /* Reduzido para torná-lo mais compacto */
+    width: 92%;
+    max-width: 1000px; /* Mais compacto para desktop e mobile */
     margin: 20px auto;
-    padding: 25px;
-    background-color: #0F172A; /* Tom de azul escuro */
+    padding: 20px;
+     background:linear-gradient(#7FB500, #000); /* Tom de azul escuro */
     border-radius: 12px;
     border: 1px solid #334155;
 }
@@ -21,21 +21,42 @@
 /* Cabeçalho da Sala - Compacto */
 .room-header {
     padding: 20px;
-    background-color: #1E293B; /* Azul um pouco mais claro */
+    background: #000; /* Fundo preto nos containers */
     border-radius: 8px;
     margin-bottom: 20px;
+    color: #fff; /* Letras brancas */
 }
 
 .challenge-title-section {
     margin-bottom: 20px;
+    display: flex;
+    width: 82%;
+    height: 150px;
 }
 
 .challenge-title {
-    color: #64ffda;
-    font-size: 2.2rem;
-    margin: 0 0 10px 0;
+    color: #ffffff; /* Título branco conforme padronização */
+    font-size: 1.5rem;
+    margin: 0 0 5px 0;
     font-weight: bold;
     line-height: 1.2;
+    font-family: 'Korataki', Arial, sans-serif;
+}
+/* Imagem da Missão (abaixo do título) */
+.mission-image {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #333;
+    margin: 8px 0 14px;
+    display: block;
+}
+@media (max-width: 480px) {
+    .mission-image {
+        max-height: 180px;
+        border-radius: 8px;
+    }
 }
 
 .room-subtitle {
@@ -50,6 +71,7 @@
     color: #94A3B8;
     font-size: 1.1rem;
     font-weight: 500;
+    font-family: 'Gotham Book', Arial, sans-serif;
 }
 
 .room-code-section {
@@ -60,43 +82,48 @@
 
 .room-code-display {
     background-color: #334155;
-    color: #64ffda;
-    padding: 8px 12px;
+    color: #fff;
+    padding: 6px 10px;
     border-radius: 6px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .share-btn {
-    background-color: #64ffda;
-    color: #0F172A;
-    border: none;
-    padding: 8px 12px;
+    background-color: var(--btn-green);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-green);
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     transition: background-color 0.2s;
 }
 
 .share-btn:hover {
-    background-color: #4fd1c7;
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-bg);
 }
 
 /* Grid de Informações - Compacto */
 .room-info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
 }
 
 .info-card {
-    background-color: #334155;
-    padding: 15px;
+    background-color: #000; /* Fundo preto */
+    padding: 12px;
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
+    color: #fff; /* Letras brancas */
+    display: flex;
+    flex-direction: column;
 }
 
 .info-card:hover {
@@ -104,27 +131,29 @@
 }
 
 .info-icon {
-    font-size: 1.8rem;
-    margin-bottom: 8px;
+    font-size: 1.4rem; /* Ícones menores */
+    margin-bottom: 6px;
 }
 
 .info-number {
     display: block;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: #e0e0e0;
     margin-bottom: 4px;
+    font-family: 'Korataki', Arial, sans-serif;
 }
 
 .info-label {
     color: #94A3B8; /* Cinza azulado */
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    font-family: 'Gotham Book', Arial, sans-serif;
 }
 
 /* Abas */
 .tabs {
     display: flex;
-    gap: 10px;
+    gap: 8px; /* Gap reduzido */
     margin-bottom: 25px;
 }
 
@@ -160,9 +189,10 @@
 }
 
 .student-card {
-    background-color: #1E293B;
+     background:linear-gradient(#7FB500, #000); /* Fundo preto */
     padding: 20px;
     border-radius: 8px;
+    color: #fff; /* Letras brancas */
 }
 
 .student-header {
@@ -237,9 +267,10 @@
 }
 
 .challenge-item {
-    background-color: #1E293B;
+    background-color: #000; /* Fundo preto */
     padding: 20px;
     border-radius: 8px;
+    color: #fff; /* Letras brancas */
 }
 
 .challenge-title {
@@ -256,9 +287,9 @@
 .empty-state {
     text-align: center;
     padding: 50px;
-    background-color: #1E293B;
+    background-color: #000; /* Fundo preto */
     border-radius: 8px;
-    color: #94A3B8;
+    color: #fff; /* Letras brancas */
 }
 
 .empty-icon {
@@ -271,23 +302,27 @@
     margin-bottom: 10px;
 }
 
-/* Responsividade */
+/* Responsividade (compacto) */
 @media (max-width: 768px) {
-    .room-title-section {
+    .challenge-title {
+        font-size: 1.4rem;
+    }
+    .info-icon { font-size: 1.3rem; }
+    .room-subtitle {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 8px;
     }
-
     .room-info-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
-
     .student-stats {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
     }
+    .tabs { gap: 4px; }
 }
 
 @media (max-width: 480px) {
@@ -296,25 +331,20 @@
         padding: 15px;
         margin: 10px auto;
     }
-    
     .room-header, .student-card, .challenge-item, .empty-state {
         padding: 15px;
     }
-
     .room-info-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
-
-    .room-title {
-        font-size: 2rem;
-    }
-
     .tabs {
-        gap: 5px;
+        gap: 4px; /* Gap ainda menor no mobile */
     }
-
     .tab {
-        padding: 10px 15px;
+        padding: 10px 14px;
         font-size: 0.9rem;
     }
+    .info-icon { font-size: 1.2rem; }
+    .card { padding: 10px; }
+    .card-title { font-size: 1rem; }
 }
