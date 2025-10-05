@@ -314,6 +314,12 @@ app.register_blueprint(professor_bp, url_prefix='/professor')
 app.register_blueprint(aluno_bp)
 app.register_blueprint(missao_bp)
 
+# Alias de acesso direto à sala para compatibilidade
+@app.route('/sala/<codigo_sala>', endpoint='sala_detalhes_alias')
+def sala_detalhes_alias(codigo_sala):
+    # Redireciona para a rota do blueprint de professor
+    return redirect(url_for('professor.professor_sala_detalhes', codigo_sala=codigo_sala))
+
 
 # Rota de aluno_login movida para blueprint aluno
 

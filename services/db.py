@@ -134,7 +134,7 @@ class DatabaseManager:
             cursor.execute('''
                 SELECT s.*, p.nome as professor_nome
                 FROM salas_virtuais s
-                JOIN professores p ON s.professor_id = p.id
+                LEFT JOIN professores p ON s.professor_id = p.id
                 WHERE UPPER(s.codigo_sala) = UPPER(?) AND s.ativa = 1
             ''', (codigo_sala,))
             
@@ -151,7 +151,7 @@ class DatabaseManager:
             cursor.execute('''
                 SELECT s.*, p.nome as professor_nome
                 FROM salas_virtuais s
-                JOIN professores p ON s.professor_id = p.id
+                LEFT JOIN professores p ON s.professor_id = p.id
                 WHERE UPPER(s.codigo_sala) = UPPER(?)
             ''', (codigo_sala,))
             sala = cursor.fetchone()

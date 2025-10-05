@@ -295,7 +295,9 @@ def excluir_aluno_ranking():
 
 @professor_bp.route('/sala/<codigo_sala>', endpoint='professor_sala_detalhes')
 def sala_detalhes(codigo_sala):
+    
     """Detalhes da sala e links de acesso dos alunos, lendo exclusivamente do SQLite."""
+    print(f'Função sala_detalhes chamada para código: {codigo_sala}')  # Print de depuração
     # Tentar buscar pelo banco (inclui salas inativas)
     sala_db = db_manager.buscar_sala_por_codigo_any(codigo_sala)
     if sala_db:

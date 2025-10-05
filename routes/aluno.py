@@ -23,6 +23,7 @@ def aluno_login(codigo_sala):
     erro = None
     if request.method == 'POST':
         nome_digitado = request.form.get('nome_aluno', '').strip()
+        logging.info(f"Tentativa de login para sala {codigo_sala} com nome: '{nome_digitado}'")
         if not nome_digitado:
             erro = 'Digite seu nome completo.'
         else:
@@ -30,12 +31,17 @@ def aluno_login(codigo_sala):
                 with sqlite3.connect(db_manager.db_path) as conn:
                     cursor = conn.cursor()
                     cursor.execute('''
-                        SELECT id, nome FROM alunos WHERE sala_id = ? AND nome = ?
-                    ''', (sala['id'], nome_digitado))
-                    row = cursor.fetchone()
+                        SELECT id, nome FROM alunos WHERE sala_id = ?
+                    ''', (sala['id'],))
+                    alunos_na_sala = cursor.fetchall()
+                    logging.info(f"Alunos registrados na sala {codigo_sala}: {[a[1] for a in alunos_na_sala]}")
+
+                    # Verifica se o nome digitado corresponde exatamente a algum nome na lista
+                    row = next((a for a in alunos_na_sala if a[1] == nome_digitado), None)
                     if row:
                         session['aluno_id'] = row[0]
                         session['nome_aluno'] = row[1]
+                        logging.info(f"Login bem-sucedido para aluno {row[1]} na sala {codigo_sala}")
                         return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                     else:
                         erro = 'Nome não encontrado na lista. Verifique e tente novamente.'
@@ -62,6 +68,7 @@ def aluno_entrar():
 
         codigo = request.form.get('codigo_sala', '').strip().upper()
         nome = request.form.get('nome_aluno', '').strip()
+        logging.info(f"Tentativa de entrada para sala '{codigo}' com nome: '{nome}'")
         if not codigo or not nome:
             erro = 'Informe o código da sala e seu nome completo.'
         else:
@@ -79,12 +86,15 @@ def aluno_entrar():
                         cursor = conn.cursor()
                         cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ?', (sala['id'],))
                         alunos = cursor.fetchall()
+                        logging.info(f"Alunos registrados na sala {codigo}: {[a[1] for a in alunos]}")
                         nome_norm = normalize_name(nome)
+                        logging.info(f"Nome digitado normalizado: '{nome_norm}'")
                         row = next((r for r in alunos if normalize_name(r[1]) == nome_norm), None)
                         if row:
                             session['aluno_id'] = row[0]
                             session['nome_aluno'] = row[1]
                             session['sala_id'] = sala['id']
+                            logging.info(f"Entrada bem-sucedida para aluno {row[1]} na sala {codigo}")
                             return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                         else:
                             erro = 'Nome não encontrado na lista dessa sala. Verifique acentos e espaços.'
