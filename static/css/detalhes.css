@@ -1,0 +1,320 @@
+/* Estrutura Principal */
+.main-container {
+    width: 95%;
+    max-width: 980px; /* Reduzido para torná-lo mais compacto */
+    margin: 20px auto;
+    padding: 25px;
+    background-color: #0F172A; /* Tom de azul escuro */
+    border-radius: 12px;
+    border: 1px solid #334155;
+}
+
+.back-btn {
+    display: inline-block;
+    margin-bottom: 25px;
+    color: #64ffda;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Cabeçalho da Sala - Compacto */
+.room-header {
+    padding: 20px;
+    background-color: #1E293B; /* Azul um pouco mais claro */
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.challenge-title-section {
+    margin-bottom: 20px;
+}
+
+.challenge-title {
+    color: #64ffda;
+    font-size: 2.2rem;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.room-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.room-destination {
+    color: #94A3B8;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.room-code-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.room-code-display {
+    background-color: #334155;
+    color: #64ffda;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.share-btn {
+    background-color: #64ffda;
+    color: #0F172A;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+}
+
+.share-btn:hover {
+    background-color: #4fd1c7;
+}
+
+/* Grid de Informações - Compacto */
+.room-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.info-card {
+    background-color: #334155;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+}
+
+.info-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.info-number {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+}
+
+.info-label {
+    color: #94A3B8; /* Cinza azulado */
+    font-size: 0.85rem;
+}
+
+/* Abas */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.tab {
+    padding: 12px 22px;
+    background-color: #334155;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.tab.active {
+    background-color: #64ffda;
+    color: #0F172A;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Grid de Alunos */
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.student-card {
+    background-color: #1E293B;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.student-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.student-name {
+    font-weight: bold;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+}
+
+.student-progress {
+    background-color: #64ffda;
+    color: #0F172A;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.student-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.student-stat {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-weight: bold;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+}
+
+.stat-label {
+    color: #94A3B8;
+    font-size: 0.9rem;
+}
+
+.student-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px;
+    background-color: #334155;
+    color: #e0e0e0;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.action-btn:hover {
+    background-color: #475569;
+}
+
+/* Lista de Desafios */
+.challenges-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.challenge-item {
+    background-color: #1E293B;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.challenge-title {
+    font-weight: bold;
+    color: #64ffda;
+    margin-bottom: 8px;
+}
+
+.challenge-desc {
+    color: #e0e0e0;
+}
+
+/* Estados Vazios */
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    background-color: #1E293B;
+    border-radius: 8px;
+    color: #94A3B8;
+}
+
+.empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #e0e0e0;
+    margin-bottom: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .room-title-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .room-info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+
+    .student-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-container {
+        width: 100%;
+        padding: 15px;
+        margin: 10px auto;
+    }
+    
+    .room-header, .student-card, .challenge-item, .empty-state {
+        padding: 15px;
+    }
+
+    .room-info-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .room-title {
+        font-size: 2rem;
+    }
+
+    .tabs {
+        gap: 5px;
+    }
+
+    .tab {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+}
