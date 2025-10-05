@@ -9,7 +9,7 @@
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
-    <form class="container-grande" action="{{ url_for('viagem', destino=destino, nave_id=nave.imagem.split('.')[0]) }}" method="POST">
+    <form class="container-grande" action="{{ url_for('viagem', destino=destino, nave_id=nave.imagem.split('.')[0], codigo_sala=codigo_sala) }}" method="POST">
         
         <h2>Montagem da Carga</h2>
         <div class="info-nave">
@@ -18,7 +18,7 @@
         </div>
 
         <div class="sumario-carga">
-            <h3>Sumário da Carga</h3>
+            <h3>Sumário da Missão</h3>
             <p>
                 Massa Total Selecionada: 
                 <span id="massa-total">0</span> kg / 
@@ -27,6 +27,36 @@
             <div class="barra-progresso-container">
                 <div id="barra-progresso" class="barra-progresso"></div>
             </div>
+            
+            <!-- Novas informações de performance -->
+            <div id="info-performance" style="margin-top: 15px; padding: 12px; background: rgba(100, 255, 218, 0.1); border-radius: 8px; border-left: 4px solid #64ffda;">
+                <h4 style="margin: 0 0 8px 0; color: #64ffda;">Análise da Missão</h4>
+                <p style="margin: 5px 0; font-size: 0.9em;">
+                    <strong>Capacidade Máxima:</strong> 
+                    <span id="capacidade-maxima">Calculando...</span>
+                </p>
+                <p style="margin: 5px 0; font-size: 0.9em;">
+                    <strong>Duração Estimada:</strong> 
+                    <span id="duracao-missao">Calculando...</span>
+                </p>
+                <p style="margin: 2px 0; font-size: 0.8em; color: #888;" id="explicacao-duracao">
+                    Duração base calculada para missão {{ destino.capitalize() }}
+                </p>
+            </div>
+            
+            <!-- Informações de sobrevivência apenas para missões lunares -->
+            {% if destino.lower() == 'lua' %}
+            <div id="info-sobrevivencia" style="margin-top: 15px; padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107;">
+                <h4 style="margin: 0 0 8px 0; color: #ffc107;">🧭 Orientações de Sobrevivência Lunar</h4>
+                <ul style="margin: 5px 0; padding-left: 20px; font-size: 0.85em;">
+                    <li>Mantenha sistemas de suporte vital prioritários</li>
+                    <li>Verifique selagem dos módulos habitacionais</li>
+                    <li>Monitore níveis de oxigênio e pressão interna</li>
+                    <li>Conserve energia durante períodos de baixa luz solar</li>
+                    <li>Mantenha estoque de emergência para 48 horas</li>
+                </ul>
+            </div>
+            {% endif %}
         </div>
 
         <h3>Módulos Disponíveis</h3>
@@ -35,7 +65,7 @@
         </div>
         <div id="container-modulos" class="modulos-container cards-scroll-inner">
             {% for id, modulo in modulos.items() %}
-            <div class="modulo-card compacto" data-id="{{ id }}" data-massa="{{ modulo.massa }}" data-tooltip="{{ modulo.obs }}">
+            <div class="modulo-card compacto" data-id="{{ id }}" data-massa="{{ modulo.massa }}" data-energia="{{ modulo.energia }}" data-agua="{{ modulo.agua }}" data-tooltip="{{ modulo.obs }}">
                 <div class="modulo-imagem-container">
                     <img src="{{ url_for('static', filename='imagens/modulos/' + modulo.imagem) }}" alt="{{ modulo.nome }}">
                 </div>
@@ -48,7 +78,11 @@
                     <p><strong>Água:</strong> {{ modulo.agua }} L/dia</p>
                     </div>
                 
-                <button type="button" class="botao-modulo">Adicionar</button>
+                <div class="controles-modulo">
+                    <button type="button" class="botao-adicionar" title="Adicionar módulo">+</button>
+                    <button type="button" class="botao-modulo">Adicionar</button>
+                    <button type="button" class="botao-remover" title="Remover módulo">−</button>
+                </div>
             </div>
             {% endfor %}
         </div>

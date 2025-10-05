@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Sala - Minha NASA Minha Vida</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="conteudo-centralizado">
+    <div class="details-container">
+        <a href="{{ url_for('professor_dashboard') }}" class="back-btn">
+            ← Voltar ao Dashboard
+        </a>
+        
+        <div class="room-header">
+            <h1 class="room-title">{{ sala.destino }}</h1>
+            <div class="room-code-display">{{ sala.codigo_sala }}</div>
+            
+            <div class="room-info-grid">
+                <div class="info-card">
+                    <div class="info-icon">👥</div>
+                    <span class="info-number">{{ sala.alunos|length }}</span>
+                    <span class="info-label">Alunos Matriculados</span>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🚀</div>
+                    <span class="info-number">{{ sala.nave_id }}</span>
+                    <span class="info-label">Nave Espacial</span>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <span class="info-number">{{ sala.desafios|length }}</span>
+                    <span class="info-label">Desafios</span>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">📅</div>
+                    <span class="info-number">{{ sala.data_criacao[:10] }}</span>
+                    <span class="info-label">Data de Criação</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('alunos')">Alunos</button>
+            <button class="tab" onclick="showTab('desafios')">Desafios</button>
+            <button class="tab" onclick="showTab('estatisticas')">Estatísticas</button>
+        </div>
+        
+        <!-- Tab Alunos -->
+        <div id="tab-alunos" class="tab-content active">
+            {% if sala.alunos %}
+                <div class="students-grid">
+                    {% for aluno in sala.alunos %}
+                        <div class="student-card">
+                            <div class="student-header">
+                                <span class="student-name">{{ aluno.nome }}</span>
+                                <span class="student-progress">75%</span>
+                            </div>
+                            
+                            <div class="student-stats">
+                                <div class="student-stat">
+                                    <span class="stat-value">5/8</span>
+                                    <span class="stat-label">Desafios</span>
+                                </div>
+                                <div class="student-stat">
+                                    <span class="stat-value">85%</span>
+                                    <span class="stat-label">Precisão</span>
+                                </div>
+                            </div>
+                            
+                            <div class="student-actions">
+                                <button class="action-btn view-btn">Ver Progresso</button>
+                                <button class="action-btn view-btn">Enviar Mensagem</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #ccc;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">👥</div>
+                    <h3>Nenhum aluno matriculado ainda</h3>
+                    <p>Compartilhe o código da sala com seus alunos para começarem a jornada!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tab Desafios -->
+        <div id="tab-desafios" class="tab-content">
+            <div class="challenges-list">
+                {% for desafio in sala.desafios %}
+                    <div class="challenge-item">
+                        <div class="challenge-title">Desafio {{ loop.index }}</div>
+                        <div class="challenge-desc">{{ desafio }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Tab Estatísticas -->
+        <div id="tab-estatisticas" class="tab-content">
+            <div style="text-align: center; padding: 40px; color: #ccc;">
+                <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+                <h3>Estatísticas em Desenvolvimento</h3>
+                <p>Em breve: gráficos detalhados de desempenho da turma</p>
+            </div>
+        </div>
+        
+        <div class="share-section">
+            <h2 class="share-title">Compartilhar Sala</h2>
+            <p style="color: #ccc; margin-bottom: 20px;">Compartilhe este código com seus alunos:</p>
+            
+            <div class="share-code" id="share-code">{{ sala.codigo_sala }}</div>
+            
+            <button class="share-btn" onclick="copiarCodigo()">
+                📋 Copiar Código
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Esconder todas as tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar tab selecionada
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        function copiarCodigo() {
+            const codigo = document.getElementById('share-code').textContent;
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert('Código copiado: ' + codigo);
+            }).catch(err => {
+                alert('Erro ao copiar código: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>

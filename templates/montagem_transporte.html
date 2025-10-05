@@ -5,7 +5,7 @@
     <title>Montagem do Transporte</title>
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
+    href="{{ url_for('static', filename='css/style.css') }}"
     />
   </head>
   <body class="conteudo-centralizado">
@@ -28,7 +28,7 @@
             ton<br />
             <strong>Perfil da Missão:</strong> {{ nave.perfil_missao }}
           </div>
-          <a href="{{ url_for('selecao_modulos', destino=destino, nave_id=id) }}" class="botao">Selecionar</a>
+          <a href="{{ url_for('selecao_modulos', destino=destino, nave_id=id, codigo_sala=codigo_sala) }}" class="botao">Selecionar</a>
         </div>
         {% endfor %}
       </div>

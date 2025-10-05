@@ -1,0 +1,10 @@
+{
+  "professores": [
+    {
+      "id": 1,
+      "nome": "Professor"
+    }
+  ],
+  "salas": [],
+  "progresso": {}
+}

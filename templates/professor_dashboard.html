@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Professor - Minha NASA Minha Vida</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="conteudo-centralizado">
+    <header class="brand-header">
+        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+    </header>
+    <div class="container-grande">
+        <h2>Dashboard do Professor</h2>
+        <div class="naves-container" style="gap: 24px;">
+            <div class="nave-card" style="flex: 1;">
+                <h4>Ranking de Pontuações</h4>
+                {% if ranking %}
+                <div class="missao-stats">
+                    {% for item in ranking %}
+                        <div style="display:flex; justify-content: space-between; align-items:center; gap:12px; margin:6px 0;">
+                            <span><strong>{{ loop.index }}. {{ item.nome }}</strong>: {{ item.total }} pontos</span>
+                            <form method="POST" action="{{ url_for('professor_excluir_aluno_ranking') }}" style="margin:0;">
+                                <input type="hidden" name="aluno_id" value="{{ item.id }}" />
+                                <button type="submit" class="botao" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">🗑️ Excluir do ranking</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p class="missao-descricao">Ainda não há pontuações registradas.</p>
+                {% endif %}
+            </div>
+            <div class="nave-card" style="flex: 1;">
+                <h4>Criar Sala e Upload de Alunos</h4>
+                <form method="POST" action="{{ url_for('professor_criar_sala') }}" enctype="multipart/form-data">
+                    <label for="nome_sala" class="form-label">Nome da Sala</label>
+                    <input type="text" id="nome_sala" name="nome_sala" class="form-input" required>
+                    <label for="lista_alunos" class="form-label" style="margin-top: 12px;">Lista de Alunos (.txt, um por linha)</label>
+                    <input type="file" id="lista_alunos" name="lista_alunos" accept=".txt" class="form-input" required>
+                    <button type="submit" class="botao" style="margin-top: 12px;">Criar Sala</button>
+                </form>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+            <h3>Minhas Salas</h3>
+            <!-- Botão geral mantido, mas o principal ficará dentro de cada sala -->
+            <a href="{{ url_for('tela_selecao') }}" class="botao">Criar Novo Desafio</a>
+        </div>
+        
+        {% if salas %}
+            <div class="naves-container">
+                {% for sala in salas %}
+                <div class="nave-card">
+                    <h4>Sala: {{ sala.nome_sala }}</h4>
+                    <p class="nave-descricao">Código: <strong>{{ sala.codigo }}</strong>
+                        <button class="botao" style="margin-left:8px; padding:6px 10px; font-size:12px;" onclick="copiarCodigo('{{ sala.codigo }}')">Copiar</button>
+                    </p>
+                    <div class="nave-stats">
+                        <strong>Destino:</strong> {{ sala.destino }}<br />
+                        <strong>Nave:</strong> {{ sala.nave_id }}<br />
+                        <strong>Alunos:</strong> {{ sala.aluno_count }}<br />
+                        <strong>Criada em:</strong> {{ sala.data_criacao }}
+                    </div>
+
+                    <div class="room-actions" style="margin-top: 12px;">
+                        <a href="{{ url_for('professor_sala_detalhes', codigo_sala=sala.codigo) }}" class="action-btn view-btn">Ver detalhes</a>
+                        <a href="{{ url_for('tela_selecao', codigo_sala=sala.codigo) }}" class="action-btn view-btn">Criar desafio</a>
+                        <form method="POST" action="{{ url_for('professor_sala_fechar') }}" style="margin:0;">
+                            <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
+                            <button type="submit" class="action-btn view-btn" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">Fechar sala</button>
+                        </form>
+                    </div>
+
+                    {% if sala.desafios and sala.desafios|length > 0 %}
+                    <div class="nave-stats" style="margin-top: 12px;">
+                        <strong>Desafios:</strong>
+                        <div>
+                            {% for d in sala.desafios %}
+                                <div style="display:flex; justify-content: space-between; align-items:center; gap:12px; margin:6px 0;">
+                                    <form method="POST" action="{{ url_for('professor_editar_desafio') }}" style="display:flex; align-items:center; gap:8px; flex:1;">
+                                        <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
+                                        <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
+                                        <input type="text" name="titulo" value="{{ d.titulo if d.titulo else ('Desafio ' ~ loop.index) }}" class="form-input" style="max-width:220px;">
+                                        <input type="text" name="descricao" value="{{ d.descricao if d.descricao else d }}" class="form-input" style="flex:1;">
+                                        <button type="submit" class="botao" style="background: rgba(100, 255, 218, 0.18); color: #64ffda;">Salvar</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('professor_selecionar_desafio') }}" style="margin:0;">
+                                        <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
+                                        <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
+                                        <button type="submit" class="botao" style="background: rgba(65, 105, 225, 0.18); color: #4169e1;">Selecionar</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('professor_excluir_desafio') }}" style="margin:0;">
+                                        <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
+                                        <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
+                                        <button type="submit" class="botao" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">🗑️ Excluir</button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if sala.desafio_selecionado_index is not none %}
+                        <div class="missao-descricao" style="margin-top: 12px;">
+                            <strong>Descrição do desafio selecionado:</strong>
+                            <div style="margin-top:6px;">
+                                {% set dsel = sala.desafios[sala.desafio_selecionado_index] %}
+                                {% if dsel.descricao %}
+                                    {{ dsel.descricao }}
+                                {% else %}
+                                    {{ dsel }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🌌</div>
+                <h2 class="empty-text">Nenhuma sala criada ainda</h2>
+                <p>Crie sua primeira sala virtual para começar a jornada espacial com seus alunos!</p>
+            </div>
+        {% endif %}
+
+        {% if salas_inativas and salas_inativas|length > 0 %}
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+            <h3>Salas Inativas</h3>
+        </div>
+        <div class="naves-container">
+            {% for sala in salas_inativas %}
+            <div class="nave-card">
+                <h4>Sala: {{ sala.nome_sala }}</h4>
+                <p class="nave-descricao">Código: <strong>{{ sala.codigo }}</strong></p>
+                <div class="nave-stats">
+                    <strong>Destino:</strong> {{ sala.destino }}<br />
+                    <strong>Nave:</strong> {{ sala.nave_id }}<br />
+                    <strong>Alunos:</strong> {{ sala.aluno_count }}<br />
+                    <strong>Criada em:</strong> {{ sala.data_criacao }}
+                </div>
+                <form method="POST" action="{{ url_for('professor_sala_reabrir') }}" style="margin-top:12px;">
+                    <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
+                    <button type="submit" class="botao" style="background: rgba(65, 105, 225, 0.18); color: #4169e1;">Reabrir sala</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <script>
+        function copiarCodigo(codigo) {
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert('Código copiado: ' + codigo);
+            }).catch(err => {
+                alert('Erro ao copiar código: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>
