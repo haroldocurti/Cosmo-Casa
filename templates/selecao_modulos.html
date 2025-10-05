@@ -9,7 +9,7 @@
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
-    <form class="container-grande" action="{{ url_for('viagem', destino=destino, nave_id=nave.imagem.split('.')[0], codigo_sala=codigo_sala) }}" method="POST">
+<form class="container-grande" action="{{ url_for('missao.viagem', destino=destino, nave_id=nave.imagem.split('.')[0], codigo_sala=codigo_sala) }}" method="POST">
         
         <h2>Montagem da Carga</h2>
         <div class="info-nave">

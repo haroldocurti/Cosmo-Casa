@@ -20,7 +20,7 @@
                     {% for item in ranking %}
                         <div style="display:flex; justify-content: space-between; align-items:center; gap:12px; margin:6px 0;">
                             <span><strong>{{ loop.index }}. {{ item.nome }}</strong>: {{ item.total }} pontos</span>
-                            <form method="POST" action="{{ url_for('professor_excluir_aluno_ranking') }}" style="margin:0;">
+                            <form method="POST" action="{{ url_for('professor.professor_excluir_aluno_ranking') }}" style="margin:0;">
                                 <input type="hidden" name="aluno_id" value="{{ item.id }}" />
                                 <button type="submit" class="botao" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">🗑️ Excluir do ranking</button>
                             </form>
@@ -33,7 +33,7 @@
             </div>
             <div class="nave-card" style="flex: 1;">
                 <h4>Criar Sala e Upload de Alunos</h4>
-                <form method="POST" action="{{ url_for('professor_criar_sala') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ url_for('professor.professor_criar_sala') }}" enctype="multipart/form-data">
                     <label for="nome_sala" class="form-label">Nome da Sala</label>
                     <input type="text" id="nome_sala" name="nome_sala" class="form-input" required>
                     <label for="lista_alunos" class="form-label" style="margin-top: 12px;">Lista de Alunos (.txt, um por linha)</label>
@@ -45,8 +45,6 @@
 
         <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 24px;">
             <h3>Minhas Salas</h3>
-            <!-- Botão geral mantido, mas o principal ficará dentro de cada sala -->
-            <a href="{{ url_for('tela_selecao') }}" class="botao">Criar Novo Desafio</a>
         </div>
         
         {% if salas %}
@@ -65,9 +63,9 @@
                     </div>
 
                     <div class="room-actions" style="margin-top: 12px;">
-                        <a href="{{ url_for('professor_sala_detalhes', codigo_sala=sala.codigo) }}" class="action-btn view-btn">Ver detalhes</a>
-                        <a href="{{ url_for('tela_selecao', codigo_sala=sala.codigo) }}" class="action-btn view-btn">Criar desafio</a>
-                        <form method="POST" action="{{ url_for('professor_sala_fechar') }}" style="margin:0;">
+                        <a href="{{ url_for('professor.professor_sala_detalhes', codigo_sala=sala.codigo) }}" class="action-btn view-btn">Ver detalhes</a>
+                        <a href="{{ url_for('missao.montagem_transporte', destino=sala.destino, codigo_sala=sala.codigo) }}" class="action-btn view-btn">Criar desafio</a>
+                        <form method="POST" action="{{ url_for('professor.professor_sala_fechar') }}" style="margin:0;">
                             <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
                             <button type="submit" class="action-btn view-btn" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">Fechar sala</button>
                         </form>
@@ -79,19 +77,19 @@
                         <div>
                             {% for d in sala.desafios %}
                                 <div style="display:flex; justify-content: space-between; align-items:center; gap:12px; margin:6px 0;">
-                                    <form method="POST" action="{{ url_for('professor_editar_desafio') }}" style="display:flex; align-items:center; gap:8px; flex:1;">
+                                    <form method="POST" action="{{ url_for('professor.professor_editar_desafio') }}" style="display:flex; align-items:center; gap:8px; flex:1;">
                                         <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
                                         <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
                                         <input type="text" name="titulo" value="{{ d.titulo if d.titulo else ('Desafio ' ~ loop.index) }}" class="form-input" style="max-width:220px;">
                                         <input type="text" name="descricao" value="{{ d.descricao if d.descricao else d }}" class="form-input" style="flex:1;">
                                         <button type="submit" class="botao" style="background: rgba(100, 255, 218, 0.18); color: #64ffda;">Salvar</button>
                                     </form>
-                                    <form method="POST" action="{{ url_for('professor_selecionar_desafio') }}" style="margin:0;">
+                                    <form method="POST" action="{{ url_for('professor.professor_selecionar_desafio') }}" style="margin:0;">
                                         <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
                                         <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
                                         <button type="submit" class="botao" style="background: rgba(65, 105, 225, 0.18); color: #4169e1;">Selecionar</button>
                                     </form>
-                                    <form method="POST" action="{{ url_for('professor_excluir_desafio') }}" style="margin:0;">
+                                    <form method="POST" action="{{ url_for('professor.professor_excluir_desafio') }}" style="margin:0;">
                                         <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
                                         <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
                                         <button type="submit" class="botao" style="background: rgba(255, 99, 71, 0.18); color: #ff6b6b;">🗑️ Excluir</button>
@@ -142,7 +140,7 @@
                     <strong>Alunos:</strong> {{ sala.aluno_count }}<br />
                     <strong>Criada em:</strong> {{ sala.data_criacao }}
                 </div>
-                <form method="POST" action="{{ url_for('professor_sala_reabrir') }}" style="margin-top:12px;">
+                <form method="POST" action="{{ url_for('professor.professor_sala_reabrir') }}" style="margin-top:12px;">
                     <input type="hidden" name="codigo_sala" value="{{ sala.codigo }}" />
                     <button type="submit" class="botao" style="background: rgba(65, 105, 225, 0.18); color: #4169e1;">Reabrir sala</button>
                 </form>
@@ -160,5 +158,6 @@
             });
         }
     </script>
+    <script src="{{ url_for('static', filename='js/ws.js') }}"></script>
 </body>
 </html>

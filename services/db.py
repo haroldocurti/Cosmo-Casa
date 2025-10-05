@@ -1,0 +1,350 @@
+import sqlite3
+import secrets
+from datetime import datetime, timedelta
+
+
+class DatabaseManager:
+    def __init__(self, db_path='salas_virtuais.db'):
+        self.db_path = db_path
+        self.init_db()
+    
+    def init_db(self):
+        """Inicializa o banco de dados com as tabelas necessárias"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Tabela de professores
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS professores (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nome TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    senha_hash TEXT NOT NULL,
+                    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabela de salas virtuais
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS salas_virtuais (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    codigo_sala TEXT UNIQUE NOT NULL,
+                    professor_id INTEGER NOT NULL,
+                    nome_sala TEXT NOT NULL,
+                    destino TEXT NOT NULL,
+                    nave_id TEXT NOT NULL,
+                    desafios_json TEXT NOT NULL,
+                    ativa BOOLEAN DEFAULT 1,
+                    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    data_expiracao DATETIME,
+                    -- A coluna abaixo pode já existir em bancos criados previamente
+                    -- Mantemos a criação aqui para ambientes novos.
+                    desafio_selecionado_index INTEGER,
+                    FOREIGN KEY (professor_id) REFERENCES professores (id)
+                )
+            ''')
+            
+            # Tabela de alunos
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS alunos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    sala_id INTEGER NOT NULL,
+                    nome TEXT NOT NULL,
+                    email TEXT,
+                    progresso_json TEXT,
+                    data_ingresso DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (sala_id) REFERENCES salas_virtuais (id)
+                )
+            ''')
+            
+            # Tabela de respostas aos desafios
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS respostas_desafios (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    aluno_id INTEGER NOT NULL,
+                    sala_id INTEGER NOT NULL,
+                    desafio_id TEXT NOT NULL,
+                    resposta TEXT NOT NULL,
+                    correta BOOLEAN,
+                    pontuacao INTEGER,
+                    data_resposta DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos (id),
+                    FOREIGN KEY (sala_id) REFERENCES salas_virtuais (id)
+                )
+            ''')
+            
+            conn.commit()
+
+            # Garantir coluna de exclusão no ranking para alunos
+            try:
+                cursor.execute("PRAGMA table_info(alunos)")
+                cols = [row[1] for row in cursor.fetchall()]
+                if 'excluir_ranking' not in cols:
+                    cursor.execute("ALTER TABLE alunos ADD COLUMN excluir_ranking INTEGER DEFAULT 0")
+                    conn.commit()
+            except Exception:
+                pass
+
+            # Garantir coluna de seleção de desafio na sala
+            try:
+                cursor.execute("PRAGMA table_info(salas_virtuais)")
+                cols = [row[1] for row in cursor.fetchall()]
+                if 'desafio_selecionado_index' not in cols:
+                    cursor.execute("ALTER TABLE salas_virtuais ADD COLUMN desafio_selecionado_index INTEGER")
+                    conn.commit()
+            except Exception:
+                pass
+    
+    def gerar_codigo_sala(self):
+        """Gera um código único para a sala"""
+        return secrets.token_hex(4).upper()
+    
+    def criar_professor(self, nome, email, senha):
+        """Cria um novo professor no banco de dados"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            # Em produção, usar bcrypt para hash de senha
+            cursor.execute(
+                "INSERT INTO professores (nome, email, senha_hash) VALUES (?, ?, ?)",
+                (nome, email, senha)  # Em produção, usar hash seguro
+            )
+            conn.commit()
+            return cursor.lastrowid
+    
+    def criar_sala_virtual(self, professor_id, nome_sala, destino, nave_id, desafios):
+        """Cria uma nova sala virtual"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            codigo_sala = self.gerar_codigo_sala()
+            data_expiracao = datetime.now() + timedelta(days=30)
+            
+            cursor.execute('''
+                INSERT INTO salas_virtuais 
+                (codigo_sala, professor_id, nome_sala, destino, nave_id, desafios_json, data_expiracao, ativa)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (codigo_sala, professor_id, nome_sala, destino, nave_id, desafios, data_expiracao, 1))
+            
+            conn.commit()
+            return codigo_sala
+    
+    def buscar_sala_por_codigo(self, codigo_sala):
+        """Busca uma sala pelo código"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.*, p.nome as professor_nome
+                FROM salas_virtuais s
+                LEFT JOIN professores p ON s.professor_id = p.id
+                WHERE UPPER(s.codigo_sala) = UPPER(?) AND s.ativa = 1
+            ''', (codigo_sala,))
+            
+            sala = cursor.fetchone()
+            if sala:
+                columns = [description[0] for description in cursor.description]
+                return dict(zip(columns, sala))
+            return None
+
+    def buscar_sala_por_codigo_any(self, codigo_sala):
+        """Busca uma sala pelo código, incluindo inativas (uso administrativo/professor)."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.*, p.nome as professor_nome
+                FROM salas_virtuais s
+                LEFT JOIN professores p ON s.professor_id = p.id
+                WHERE UPPER(s.codigo_sala) = UPPER(?)
+            ''', (codigo_sala,))
+            sala = cursor.fetchone()
+            if sala:
+                columns = [description[0] for description in cursor.description]
+                return dict(zip(columns, sala))
+            return None
+    
+    def adicionar_aluno(self, sala_id, nome, email=None):
+        """Adiciona um aluno à sala"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO alunos (sala_id, nome, email, progresso_json)
+                VALUES (?, ?, ?, ?)
+            ''', (sala_id, nome, email, '{}'))
+            
+            conn.commit()
+            return cursor.lastrowid
+    
+    def buscar_alunos_por_sala(self, sala_id):
+        """Busca todos os alunos de uma sala"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT id, nome, email, progresso_json, data_ingresso
+                FROM alunos 
+                WHERE sala_id = ?
+                ORDER BY data_ingresso DESC
+            ''', (sala_id,))
+            
+            alunos = cursor.fetchall()
+            columns = [description[0] for description in cursor.description]
+            return [dict(zip(columns, aluno)) for aluno in alunos]
+
+    # --- Operações administrativas de salas (professor) ---
+    def fechar_sala_por_codigo(self, codigo_sala):
+        """Desativa (fecha) a sala pelo código."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE salas_virtuais SET ativa = 0 WHERE UPPER(codigo_sala) = UPPER(?)
+            ''', (codigo_sala,))
+            conn.commit()
+
+    def reabrir_sala_por_codigo(self, codigo_sala):
+        """Reativa (reabre) a sala pelo código."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE salas_virtuais SET ativa = 1 WHERE UPPER(codigo_sala) = UPPER(?)
+            ''', (codigo_sala,))
+            conn.commit()
+
+    def reabrir_sala_exclusiva(self, codigo_sala):
+        """Ativa somente a sala informada, desativando todas as demais."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE salas_virtuais SET ativa = 0')
+            cursor.execute('UPDATE salas_virtuais SET ativa = 1 WHERE UPPER(codigo_sala) = UPPER(?)', (codigo_sala,))
+            conn.commit()
+
+    def atualizar_destino_e_nave(self, codigo_sala, destino, nave_id):
+        """Atualiza destino e nave da sala pelo código."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE salas_virtuais SET destino = ?, nave_id = ? WHERE UPPER(codigo_sala) = UPPER(?)
+            ''', (destino, nave_id, codigo_sala))
+            conn.commit()
+
+    def atualizar_desafios_json(self, codigo_sala, desafios_json):
+        """Atualiza o campo desafios_json da sala pelo código."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE salas_virtuais SET desafios_json = ? WHERE UPPER(codigo_sala) = UPPER(?)
+            ''', (desafios_json, codigo_sala))
+            conn.commit()
+
+    def selecionar_desafio_index(self, codigo_sala, idx):
+        """Define o índice do desafio selecionado para a sala."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE salas_virtuais SET desafio_selecionado_index = ? WHERE UPPER(codigo_sala) = UPPER(?)
+            ''', (idx, codigo_sala))
+            conn.commit()
+
+    # --- Listagens de salas para dashboards ---
+    def listar_salas_ativas(self):
+        """Lista salas ativas com contagem de alunos e desafios."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.id, s.codigo_sala, s.nome_sala, s.destino, s.nave_id,
+                       s.data_criacao, s.desafios_json, s.desafio_selecionado_index,
+                       COUNT(a.id) AS aluno_count
+                FROM salas_virtuais s
+                LEFT JOIN alunos a ON a.sala_id = s.id
+                WHERE s.ativa = 1
+                GROUP BY s.id
+                ORDER BY s.data_criacao DESC
+            ''')
+            rows = cursor.fetchall()
+            cols = [d[0] for d in cursor.description]
+            result = []
+            for r in rows:
+                result.append(dict(zip(cols, r)))
+            return result
+
+    def listar_salas_inativas(self):
+        """Lista salas inativas com contagem de alunos."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.id, s.codigo_sala, s.nome_sala, s.destino, s.nave_id,
+                       s.data_criacao, COUNT(a.id) AS aluno_count
+                FROM salas_virtuais s
+                LEFT JOIN alunos a ON a.sala_id = s.id
+                WHERE s.ativa = 0
+                GROUP BY s.id
+                ORDER BY s.data_criacao DESC
+            ''')
+            rows = cursor.fetchall()
+            cols = [d[0] for d in cursor.description]
+            return [dict(zip(cols, r)) for r in rows]
+    
+    def registrar_resposta_desafio(self, aluno_id, sala_id, desafio_id, resposta, correta, pontuacao):
+        """Registra uma resposta a um desafio"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO respostas_desafios 
+                (aluno_id, sala_id, desafio_id, resposta, correta, pontuacao)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (aluno_id, sala_id, desafio_id, resposta, correta, pontuacao))
+            
+            conn.commit()
+            return cursor.lastrowid
+
+    # --- Ranking ---
+    def obter_ranking_sala(self, sala_id, limit=50):
+        """Retorna ranking de alunos por sala, somando pontuações das respostas válidas.
+        Exclui alunos marcados com coluna de exclusão (compatível com bancos antigos).
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            # Detectar coluna de exclusão no ranking
+            cursor.execute('PRAGMA table_info(alunos)')
+            cols = [row[1] for row in cursor.fetchall()]
+            exclude_col = 'excluir_ranking' if 'excluir_ranking' in cols else ('exclude_ranking' if 'exclude_ranking' in cols else None)
+
+            base_sql = (
+                "SELECT a.id AS aluno_id, a.nome AS nome, COALESCE(SUM(r.pontuacao), 0) AS total "
+                "FROM alunos a "
+                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND r.sala_id = a.sala_id AND (r.correta IS NULL OR r.correta = 1) "
+                "WHERE a.sala_id = ? "
+            )
+            if exclude_col:
+                base_sql += f"AND COALESCE(a.{exclude_col}, 0) = 0 "
+            base_sql += "GROUP BY a.id, a.nome ORDER BY total DESC, a.nome ASC LIMIT ?"
+
+            cursor.execute(base_sql, (sala_id, limit))
+            rows = cursor.fetchall()
+            return [{'id': r[0], 'nome': r[1], 'total': r[2]} for r in rows]
+
+    def obter_ranking_salas_ativas(self, limit=100):
+        """Ranking consolidado das salas ativas (quando há mais de uma ativa).
+        Soma pontuação por aluno em qualquer sala ativa, excluindo os marcados.
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            # Detectar coluna de exclusão no ranking
+            cursor.execute('PRAGMA table_info(alunos)')
+            cols = [row[1] for row in cursor.fetchall()]
+            exclude_col = 'excluir_ranking' if 'excluir_ranking' in cols else ('exclude_ranking' if 'exclude_ranking' in cols else None)
+
+            base_sql = (
+                "SELECT a.id AS aluno_id, a.nome AS nome, COALESCE(SUM(r.pontuacao), 0) AS total "
+                "FROM alunos a "
+                "JOIN salas_virtuais s ON s.id = a.sala_id AND s.ativa = 1 "
+                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND (r.correta IS NULL OR r.correta = 1) "
+                "WHERE 1 = 1 "
+            )
+            if exclude_col:
+                base_sql += f"AND COALESCE(a.{exclude_col}, 0) = 0 "
+            base_sql += "GROUP BY a.id, a.nome ORDER BY total DESC, a.nome ASC LIMIT ?"
+
+            cursor.execute(base_sql, (limit,))
+            rows = cursor.fetchall()
+            return [{'id': r[0], 'nome': r[1], 'total': r[2]} for r in rows]
+
+
+# Instância compartilhada
+db_manager = DatabaseManager()
