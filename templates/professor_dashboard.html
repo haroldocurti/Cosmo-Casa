@@ -27,7 +27,7 @@
                 <div class="ranking-list">
                     {% for item in ranking %}
                     <div class="ranking-item">
-                        <span><strong>{{ loop.index }}. {{ item.nome }}</strong>: {{ item.total }} pontos</span>
+                        <span><strong>{{ loop.index }}. {{ item.nome }}</strong>: {{ item.total }} pontos — Concluídos: {{ item.concluidos }} — Tentativas: {{ item.tentativas }}</span>
                         <form method="POST" action="{{ url_for('professor.professor_excluir_aluno_ranking') }}">
                             <input type="hidden" name="aluno_id" value="{{ item.id }}" />
                             <button type="submit" class="action-btn danger">🗑️</button>

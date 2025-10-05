@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Ranking da Rodada</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="conteudo-centralizado">
+    <header class="brand-header">
+        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+    </header>
+    <div class="container-grande">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h2>Ranking dos Participantes</h2>
+            <div style="display:flex;gap:8px">
+                {% if session.get('missao_destino') and session.get('missao_nave') %}
+                    <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="botao">Voltar para Módulos</a>
+                {% elif session.get('missao_destino') %}
+                    <a href="{{ url_for('missao.montagem_transporte', destino=session.get('missao_destino')) }}" class="botao">Voltar para Escolher Nave</a>
+                {% else %}
+                    <a href="{{ url_for('tela_selecao') }}" class="botao">Voltar</a>
+                {% endif %}
+                <a href="{{ url_for('tela_selecao') }}" class="botao" style="background:#121212;border-color:#2b2b2b">Nova Missão</a>
+            </div>
+        </div>
+
+        {% if ranking %}
+        <div class="ranking-list" style="margin-top:16px">
+            {% for item in ranking %}
+            <div class="ranking-item" style="padding:12px;border:1px solid #2b2b2b;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02)">
+                <div style="width:36px;height:36px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#64ffda">{{ loop.index }}</div>
+                <div style="flex:1">
+                    <div style="font-size:1.05em;margin-bottom:6px"><strong>{{ item.nome }}</strong></div>
+                    <div style="display:flex;gap:16px;align-items:center;font-size:0.95em;color:#ddd">
+                        <span>
+                            <img src="{{ url_for('missao.icons', filename='cultura.svg') }}" alt="pontos" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            Pontos: <strong>{{ item.total }}</strong>
+                        </span>
+                        <span>
+                            <img src="{{ url_for('missao.icons', filename='controle.svg') }}" alt="concluídos" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            Concluídos: {{ item.concluidos }}
+                        </span>
+                        <span>
+                            <img src="{{ url_for('missao.icons', filename='robotica.svg') }}" alt="tentativas" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            Tentativas: {{ item.tentativas }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p>Nenhum participante registrado nesta rodada.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

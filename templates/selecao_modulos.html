@@ -9,7 +9,13 @@
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
-<form class="container-grande" action="{{ url_for('missao.viagem', destino=destino, nave_id=nave.imagem.split('.')[0], codigo_sala=codigo_sala) }}" method="POST">
+    <div class="container-grande" style="display:flex;gap:8px;margin-top:8px;margin-bottom:8px">
+        {% if not session.get('aluno_id') %}
+            <a href="{{ url_for('missao.montagem_transporte', destino=destino, codigo_sala=codigo_sala) }}" class="botao">Voltar</a>
+        {% endif %}
+        <a href="{{ url_for('missao.ranking_rodada') }}" class="botao" style="background:#121212;border-color:#2b2b2b">Finalizar o Game</a>
+    </div>
+<form class="container-grande" action="{{ url_for('missao.viagem', destino=destino, nave_id=nave_id, codigo_sala=codigo_sala) }}" method="POST">
         
         <h2>Montagem da Carga</h2>
         <div class="info-nave">
