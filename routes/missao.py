@@ -106,7 +106,9 @@ def viagem(destino, nave_id):
                     db_manager.atualizar_desafios_json(codigo_sala, json.dumps(desafios, ensure_ascii=False))
             except Exception:
                 logging.exception("Falha ao anexar desafio à sala")
-            return redirect(url_for('professor.professor_dashboard'))
+            # Apenas professores devem ser redirecionados ao dashboard; alunos seguem na simulação
+            if not session.get('aluno_id'):
+                return redirect(url_for('professor.professor_dashboard'))
 
         # --- Cálculo de chegada e pontuação ---
         def calcular_resultado_e_pontos(destino_val, nave_val, modulos_dict, diario):
