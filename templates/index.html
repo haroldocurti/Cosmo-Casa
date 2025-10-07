@@ -7,17 +7,17 @@
 <body class="conteudo-centralizado">
     <header class="brand-header">
         <a href="{{ url_for('tela_selecao') }}" aria-label="Ir para seleção de missão">
-            <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+            <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='imagens/Group 3.png') }}'">
         </a>
     </header>
     <div class="container-grande">
         <p>Clique no logo acima para iniciar sua missão</p>
 <a href="{{ url_for('aluno.aluno_entrar') }}" class="botao">Iniciar Missão</a>
         
-        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #ccc;">
-            <h3 style="color: #2c3e50; margin-bottom: 1rem;">🏫 Sistema de Salas Virtuais</h3>
-            <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Para professores criarem missões personalizadas e acompanharem alunos</p>
-<a href="{{ url_for('professor.professor_dashboard') }}" class="botao";">Acessar Dashboard Professor</a>
+        <div class="section-divider mt-16 pt-16">
+            <h3 class="section-title">🏫 Sistema de Salas Virtuais</h3>
+            <p class="section-subtitle mb-16">Para professores criarem missões personalizadas e acompanharem alunos</p>
+            <a href="{{ url_for('professor.professor_dashboard') }}" class="botao">Acessar Dashboard Professor</a>
         </div>
     </div>
 </body>

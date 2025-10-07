@@ -10,38 +10,40 @@
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
     <div class="container-grande">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="toolbar-header">
             <h2>Ranking dos Participantes</h2>
-            <div style="display:flex;gap:8px">
-                {% if session.get('missao_destino') and session.get('missao_nave') %}
-                    <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="botao">Voltar para Módulos</a>
-                {% elif session.get('missao_destino') %}
-                    <a href="{{ url_for('missao.montagem_transporte', destino=session.get('missao_destino')) }}" class="botao">Voltar para Escolher Nave</a>
-                {% else %}
-                    <a href="{{ url_for('tela_selecao') }}" class="botao">Voltar</a>
-                {% endif %}
-                <a href="{{ url_for('tela_selecao') }}" class="botao" style="background:#121212;border-color:#2b2b2b">Nova Missão</a>
+            <div class="toolbar-row">
+                <a href="{{ url_for('missao.retry_modulos') }}" class="botao">Voltar para Módulos</a>
             </div>
         </div>
 
         {% if ranking %}
-        <div class="ranking-list" style="margin-top:16px">
+        <div class="ranking-list">
             {% for item in ranking %}
-            <div class="ranking-item" style="padding:12px;border:1px solid #2b2b2b;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02)">
-                <div style="width:36px;height:36px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#64ffda">{{ loop.index }}</div>
+            <div class="ranking-item">
+                <div class="ranking-index-circle">{{ loop.index }}</div>
                 <div style="flex:1">
-                    <div style="font-size:1.05em;margin-bottom:6px"><strong>{{ item.nome }}</strong></div>
-                    <div style="display:flex;gap:16px;align-items:center;font-size:0.95em;color:#ddd">
+                    <div style="font-size:1.05em;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+                        {% if loop.index == 1 %}
+                            <span aria-label="1º lugar" title="1º lugar" class="ranking-medal">🥇</span>
+                        {% elif loop.index == 2 %}
+                            <span aria-label="2º lugar" title="2º lugar" class="ranking-medal">🥈</span>
+                        {% elif loop.index == 3 %}
+                            <span aria-label="3º lugar" title="3º lugar" class="ranking-medal">🥉</span>
+                        {% endif %}
+                        <strong>{{ item.nome }}</strong>
+                    </div>
+                    <div class="kpi-row">
                         <span>
-                            <img src="{{ url_for('missao.icons', filename='cultura.svg') }}" alt="pontos" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            <img src="{{ url_for('missao.icons', filename='cultura.svg') }}" alt="pontos" class="kpi-icon">
                             Pontos: <strong>{{ item.total }}</strong>
                         </span>
                         <span>
-                            <img src="{{ url_for('missao.icons', filename='controle.svg') }}" alt="concluídos" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            <img src="{{ url_for('missao.icons', filename='controle.svg') }}" alt="concluídos" class="kpi-icon">
                             Concluídos: {{ item.concluidos }}
                         </span>
                         <span>
-                            <img src="{{ url_for('missao.icons', filename='robotica.svg') }}" alt="tentativas" style="width:18px;height:18px;vertical-align:middle;margin-right:6px">
+                            <img src="{{ url_for('missao.icons', filename='robotica.svg') }}" alt="tentativas" class="kpi-icon">
                             Tentativas: {{ item.tentativas }}
                         </span>
                     </div>

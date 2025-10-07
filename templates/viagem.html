@@ -7,10 +7,10 @@
 </head>
 <body class="conteudo-centralizado">
     <header class="brand-header">
-        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='imagens/Group 3.png') }}'">
     </header>
     <div class="container-grande">
-        <div style="margin-bottom:10px">
+        <div class="mb-10">
             {% if session.get('missao_destino') and session.get('missao_nave') %}
                 <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="botao">Voltar</a>
             {% else %}
@@ -28,6 +28,9 @@
             <div class="diario-entrada">
                 <span class="turno">Turno {{ entrada.turno }}</span>
                 <div class="evento">
+                    {% if entrada.evento.icone %}
+                        <img class="evento-icone" src="{{ url_for('missao.icons', filename=entrada.evento.icone) }}" alt="Ícone do evento" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='imagens/Group 3.png') }}'">
+                    {% endif %}
                     <h4>{{ entrada.evento.nome }}</h4>
                     <p>{{ entrada.evento.descricao }}</p>
                 </div>
@@ -51,7 +54,7 @@
             </ul>
         </div>
         {% if chegada_ok is defined %}
-        <div class="resultado-viagem" style="margin-top:16px">
+        <div class="resultado-viagem mt-16">
             {% if chegada_ok %}
                 <p><strong>Sucesso:</strong> Você alcançou o destino com a carga essencial. Pontuação: <strong>{{ pontuacao }}</strong></p>
                 <a href="{{ url_for('missao.habitat') }}" class="botao">Montar Habitat</a>
@@ -61,7 +64,6 @@
             {% endif %}
         </div>
         {% endif %}
-        <a href="{{ url_for('tela_selecao') }}" class="botao" style="margin-top:12px">Planejar Nova Missão</a>
     </div>
 </body>
 </html>

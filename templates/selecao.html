@@ -7,17 +7,24 @@
 </head>
 <body class="conteudo-centralizado">
     <header class="brand-header">
-        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='imagens/Group 3.png') }}'">
     </header>
     <div class="container-grande">
         <h2>Escolha seu Destino</h2>
+        <div class="toolbar-header mt-8 mb-8">
+            <div></div>
+            <div class="toolbar-row">
+                <a href="{{ url_for('aluno.aluno_entrar') }}" class="botao">Finalizar o Game</a>
+                <a href="{{ url_for('missao.ranking_rodada') }}" class="botao">Ver Ranking</a>
+            </div>
+        </div>
         <div class="naves-container">
 
             {% for id, dados in missoes.items() %}
             <div class="nave-card">
                 <h4>{{ dados.nome }}</h4>
                 <div>
-                    <img class="nave-imagem-placeholder" src="{{ url_for('static', filename='imagens/' + dados.imagem) }}" alt="Missão para {{ dados.nome }}">
+                    <img class="nave-imagem-placeholder" src="{{ url_for('static', filename='imagens/' + dados.imagem) }}" alt="Missão para {{ dados.nome }}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='imagens/Group 3.png') }}'">
                 </div>
                 <p class="missao-descricao">{{ dados.descricao }}</p>
                 <div class="missao-stats">

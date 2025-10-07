@@ -4,6 +4,13 @@ from datetime import datetime, timedelta
 
 
 class DatabaseManager:
+    """Gerencia conexão e operações no banco SQLite.
+
+    Notas:
+    - Usa `db_path` como arquivo único do banco;
+    - As operações são focadas em robustez e simplicidade para ambiente escolar;
+    - Em produção, recomenda-se migração para um ORM (SQLAlchemy) e testes unitários.
+    """
     def __init__(self, db_path='salas_virtuais.db'):
         self.db_path = db_path
         self.init_db()
@@ -230,6 +237,24 @@ class DatabaseManager:
             cursor.execute('UPDATE salas_virtuais SET ativa = 1 WHERE UPPER(codigo_sala) = UPPER(?)', (codigo_sala,))
             conn.commit()
 
+    def excluir_sala_por_codigo(self, codigo_sala):
+        """Exclui definitivamente a sala e seus dados relacionados (alunos e respostas)."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            # Encontrar ID da sala
+            cursor.execute('SELECT id FROM salas_virtuais WHERE UPPER(codigo_sala) = UPPER(?)', (codigo_sala,))
+            row = cursor.fetchone()
+            if not row:
+                return False
+            sala_id = row[0]
+            # Excluir respostas e alunos vinculados
+            cursor.execute('DELETE FROM respostas_desafios WHERE sala_id = ?', (sala_id,))
+            cursor.execute('DELETE FROM alunos WHERE sala_id = ?', (sala_id,))
+            # Excluir sala
+            cursor.execute('DELETE FROM salas_virtuais WHERE id = ?', (sala_id,))
+            conn.commit()
+            return True
+
     def atualizar_destino_e_nave(self, codigo_sala, destino, nave_id):
         """Atualiza destino e nave da sala pelo código."""
         with sqlite3.connect(self.db_path) as conn:
@@ -295,6 +320,39 @@ class DatabaseManager:
             rows = cursor.fetchall()
             cols = [d[0] for d in cursor.description]
             return [dict(zip(cols, r)) for r in rows]
+
+    def obter_estatisticas_por_sala(self):
+        """Retorna estatísticas agregadas por sala (tentativas, corretas, média de pontos, precisão)."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.id AS sala_id,
+                       s.codigo_sala,
+                       s.nome_sala,
+                       s.ativa,
+                       COALESCE(COUNT(r.id), 0) AS tentativas_total,
+                       COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS corretas_total,
+                       COALESCE(AVG(COALESCE(r.pontuacao, 0)), 0) AS media_pontuacao
+                FROM salas_virtuais s
+                LEFT JOIN respostas_desafios r ON r.sala_id = s.id
+                GROUP BY s.id, s.codigo_sala, s.nome_sala, s.ativa
+                ORDER BY s.data_criacao DESC
+            ''')
+            rows = cursor.fetchall()
+            result = []
+            for sala_id, codigo, nome, ativa, tent, corr, media in rows:
+                precisao = int(round((corr / tent) * 100)) if tent else 0
+                result.append({
+                    'sala_id': sala_id,
+                    'codigo_sala': codigo,
+                    'nome_sala': nome,
+                    'ativa': ativa,
+                    'tentativas_total': tent,
+                    'corretas_total': corr,
+                    'media_pontuacao': float(media) if media is not None else 0.0,
+                    'precisao_geral_pct': precisao
+                })
+            return result
     
     def registrar_resposta_desafio(self, aluno_id, sala_id, desafio_id, resposta, correta, pontuacao):
         """Registra uma resposta a um desafio"""
@@ -363,6 +421,43 @@ class DatabaseManager:
             rows = cursor.fetchall()
             return [{'id': r[0], 'nome': r[1], 'total': r[2], 'tentativas': r[3], 'concluidos': r[4]} for r in rows]
 
+    def obter_estatisticas_por_desafio(self, sala_id):
+        """Agrupa respostas por desafio dentro da sala e calcula tentativas, corretas e média de pontuação."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT desafio_id,
+                       COUNT(id) AS tentativas,
+                       COALESCE(SUM(CASE WHEN correta = 1 THEN 1 ELSE 0 END), 0) AS corretas,
+                       COALESCE(AVG(COALESCE(pontuacao, 0)), 0) AS media_pontuacao
+                FROM respostas_desafios
+                WHERE sala_id = ?
+                GROUP BY desafio_id
+                ORDER BY desafio_id ASC
+                '''
+            , (sala_id,))
+            rows = cursor.fetchall()
+            return [
+                {
+                    'desafio_id': r[0],
+                    'tentativas': r[1],
+                    'corretas': r[2],
+                    'media_pontuacao': float(r[3]) if r[3] is not None else 0.0,
+                    'precisao_pct': int(round((r[2] / r[1]) * 100)) if r[1] else 0
+                }
+                for r in rows
+            ]
+
 
 # Instância compartilhada
 db_manager = DatabaseManager()
+"""Camada de acesso a dados (SQLite) do Cosmo-Casa.
+
+Fornece operações para professores e alunos:
+- Salas virtuais: criar, atualizar destino/nave, fechar/reabrir, excluir;
+- Alunos: adicionar, listar, ranking e estatísticas;
+- Desafios: armazenados em JSON por sala (simplificado para esta versão).
+
+Mantém a aplicação simples e portável, sem dependências de servidor externo.
+"""

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Login do Professor</title>
+    <style>
+        .login-card { max-width: 420px; margin: 0 auto; padding: 16px; border: 1px solid #2a2a2a; border-radius: 8px; background: rgba(255,255,255,0.02); }
+        .login-title { margin: 0 0 12px 0; color: #fff; }
+        .login-help { margin: 8px 0; font-size: 0.9em; color: #888; }
+        .form-row { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+        .form-row input { padding: 10px; border-radius: 6px; border: 1px solid #3a3a3a; background: #0b132b; color: #e0e0e0; }
+        .erro { color: #ff6b6b; margin: 8px 0; }
+    </style>
+</head>
+<body class="conteudo-centralizado">
+    <div class="container-grande">
+        <div class="login-card">
+            <h2 class="login-title">Login do Professor</h2>
+            {% if erro %}
+            <div class="erro">{{ erro }}</div>
+            {% endif %}
+            <form method="post" action="{{ url_for('professor.professor_login', next=request.args.get('next')) }}">
+                <div class="form-row">
+                    <label for="usuario">Usuário (opcional)</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Seu nome">
+                </div>
+                <div class="form-row">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Digite a senha">
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="botao">Entrar</button>
+                </div>
+            </form>
+            <p class="login-help">Dica: configure a variável de ambiente <code>PROFESSOR_PASSWORD</code> para definir a senha. Valor padrão: <code>professor</code>.</p>
+            <p><a href="{{ url_for('index') }}" class="botao">Voltar para Home</a></p>
+        </div>
+    </div>
+</body>
+</html>

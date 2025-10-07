@@ -4,73 +4,21 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Cosmo Casa – Editor</title>
-<style>
-  :root{
-    --bg:#0f0f0f; --panel:#151515; --panel2:#101010;
-    --grid:#1a1a1a; --grid2:#141414; --stroke:#222;
-    --lime:#98ff3b; --lime2:#64e61b; --txt:#eef1f3; --muted:#a2aab0;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-  .app{height:100vh;display:grid;gap:10px;padding:10px;grid-template-columns:260px 1fr 300px}
-
-  /* painéis */
-  .panel{background:var(--panel);border:1px solid #1e1e1e;border-radius:6px;overflow:auto}
-  .logo{display:flex;align-items:center;gap:.6rem;padding:14px 14px;border-bottom:1px solid #1e1e1e}
-  .brand{font-weight:700;letter-spacing:.3px}
-  .section{padding:14px;border-top:1px solid #1e1e1e}
-  .section h4{margin:0 0 10px;font-size:.86rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-
-  /* paleta esquerda */
-  .palette{display:grid;gap:10px;grid-template-columns:repeat(4,1fr)}
-  .chip{background:var(--panel2);border:1px solid var(--stroke);border-radius:8px;height:58px;display:flex;align-items:center;justify-content:center;cursor:grab;position:relative;user-select:none}
-  .chip span{position:absolute;bottom:6px;left:6px;font-size:.68rem;color:#9aa3a7}
-  .conn-rect{width:44px;height:10px;border:3px solid var(--lime);border-radius:4px; background: var(--lime);}
-  .conn-bar{width:10px;height:44px;background:var(--lime);border-radius:3px}
-  .formats{grid-template-columns:repeat(3,1fr)}
-  .hex,.pent{width:52px;height:52px}
-  .hex svg,.pent svg{width:100%;height:100%}
-  .student{margin-top:8px;color:var(--lime);font-size:.82rem}
-
-  /* tabuleiro central com grade */
-  .board-wrap{background:var(--panel);border:1px solid #1e1e1e;border-radius:6px;overflow:hidden;position:relative}
-  .board{
-    position:absolute;inset:0;cursor:crosshair;
-    background:
-      repeating-linear-gradient(0deg, var(--grid2) 0 1px, transparent 1px 20px),
-      repeating-linear-gradient(90deg,var(--grid2) 0 1px, transparent 1px 20px),
-      repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 100px),
-      repeating-linear-gradient(90deg,var(--grid) 0 1px, transparent 1px 100px),
-      #0d0d0d;
-  }
-
-  /* peça no tabuleiro */
-  .piece{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
-  .piece.select{outline:2px solid var(--lime2);outline-offset:2px;border-radius:10px}
-  .icon{position:absolute;width:38px;height:38px;object-fit:contain;pointer-events:none}
-
-  /* painel da direita */
-  .mod-list{display:flex;flex-direction:column;gap:6px;padding:8px 8px 14px}
-  .mod{background:#0f0f0f;border:1px solid #202020;color:#cfd6dc;padding:8px 10px;border-radius:6px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px}
-  .mod:hover{border-color:#2b2b2b;background:#121212}
-  .sw{width:14px;height:14px;border-radius:3px;background:var(--lime);opacity:.85}
-  .hint{margin:8px 14px 14px;color:#9aa3a7;font-size:.86rem;line-height:1.35}
-
-  @media (max-width:1100px){.app{grid-template-columns:220px 1fr 280px}.icon{width:32px;height:32px}}
-  @media (max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:auto 60vh auto}}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/habitat.css') }}">
 </head>
 <body>
 <div class="app">
-  <!-- Barra de navegação simples -->
-  <div style="position:fixed;top:10px;left:10px;z-index:10;display:flex;gap:8px">
+  <!-- Barra de navegação simples (ajustada para baixo/esquerda e estilo padronizado) -->
+  <div class="fixed-actions">
     {% if session.get('missao_destino') and session.get('missao_nave') %}
-      <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="mod" style="padding:6px 10px;">Voltar</a>
+      <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave')) }}" class="botao">Voltar</a>
     {% else %}
-      <a href="{{ url_for('tela_selecao') }}" class="mod" style="padding:6px 10px;">Voltar</a>
+      <a href="{{ url_for('tela_selecao') }}" class="botao">Voltar</a>
     {% endif %}
-    <a href="{{ url_for('missao.ranking_rodada') }}" class="mod" style="padding:6px 10px;background:#121212;border-color:#2b2b2b">Finalizar o Game</a>
+    <form id="finalizarForm" action="{{ url_for('missao.habitat_finalizar') }}" method="POST" class="form-no-margin">
+      <input type="hidden" name="habitat_score" id="habitatScoreInput" value="0" />
+      <button id="btn-finalizar" type="submit" class="botao" title="Monte seu habitat para liberar a finalização" disabled>Finalizar o Game</button>
+    </form>
   </div>
   <!-- ESQUERDA -->
   <aside class="panel">
@@ -78,7 +26,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
         <path d="M12 2l4 4-4 4-4-4 4-4zM4 14l4-4 4 4-4 4-4-4zm16 0l-4-4-4 4 4 4 4-4z"/>
       </svg>
-      <div><div class="brand">Cosmo Casa</div><div style="font-size:.78rem;color:#9aa3a7">Editor de Habitat</div></div>
+      <div><div class="brand">Cosmo Casa</div><div class="brand-subtitle">Editor de Habitat</div></div>
     </div>
 
     <div class="section">
@@ -86,8 +34,8 @@
       <div class="palette">
         <div class="chip draggable" draggable="true" data-type="conn" data-rot="90"><div class="conn-rect"></div><span>90°</span></div>
         <div class="chip draggable" draggable="true" data-type="conn" data-rot="0"><div class="conn-bar"></div><span>0°</span></div>
-        <div class="chip draggable" draggable="true" data-type="conn" data-rot="45"><div class="conn-bar" style="transform:rotate(45deg)"></div><span>45°</span></div>
-        <div class="chip draggable" draggable="true" data-type="conn" data-rot="135"><div class="conn-bar" style="transform:rotate(135deg)"></div><span>135°</span></div>
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="45"><div class="conn-bar rot-45"></div><span>45°</span></div>
+        <div class="chip draggable" draggable="true" data-type="conn" data-rot="135"><div class="conn-bar rot-135"></div><span>135°</span></div>
       </div>
     </div>
 
@@ -105,42 +53,82 @@
           </div>
         </div>
       </div>
-      <div class="student">Nome do Aluno<br><span style="color:#6adf34">IP da Sala</span></div>
+      <div class="student">Nome do Aluno<br><span class="student-ip">IP da Sala</span></div>
     </div>
   </aside>
 
   <!-- TABULEIRO -->
   <main class="panel board-wrap">
     <div id="board" class="board" tabindex="0"></div>
+    <div class="board-tools">
+      <button id="btn-clear" class="botao" title="Limpar módulo desta peça">Limpar módulo</button>
+      <button id="btn-remove" class="botao" title="Excluir peça selecionada">Excluir peça</button>
+      
+      {% if false %}{% endif %}
+    </div>
   </main>
 
   <!-- DIREITA -->
   <aside class="panel">
     <div class="section"><h4>Função dos ambientes</h4></div>
     <div id="moduleList" class="mod-list">
-      <button class="mod" data-mod="suporte"><span class="sw"></span>Módulo Suporte à Vida</button>
-      <button class="mod" data-mod="habitacional"><span class="sw"></span>Habitacional Privado</button>
-      <button class="mod" data-mod="refeicoes"><span class="sw"></span>Alimentação e Refeições</button>
-      <button class="mod" data-mod="medico"><span class="sw"></span>Médico</button>
-      <button class="mod" data-mod="exercicios"><span class="sw"></span>Exercícios</button>
-      <button class="mod" data-mod="trabalho"><span class="sw"></span>Trabalho e Pesquisa</button>
-      <button class="mod" data-mod="armazenamento"><span class="sw"></span>Armazenamento</button>
-      <button class="mod" data-mod="sanitario"><span class="sw"></span>Sanitário e Higiene</button>
-      <button class="mod" data-mod="blindagem"><span class="sw"></span>Blindagem/Proteção</button>
-      <button class="mod" data-mod="inflavel"><span class="sw"></span>Inflável Expansível</button>
-      <button class="mod" data-mod="airlock"><span class="sw"></span>Airlock</button>
-      <button class="mod" data-mod="tesserae"><span class="sw"></span>Estrutural Modular (TESSERAE)</button>
-      <button class="mod" data-mod="cultura"><span class="sw"></span>Cultura e Lazer</button>
-      <button class="mod" data-mod="robotico"><span class="sw"></span>Robótico Const./Manut.</button>
-      <button class="mod" data-mod="hidroponia"><span class="sw"></span>Produção de Alimentos</button>
-      <button class="mod" data-mod="controle"><span class="sw"></span>Controle e Comunicação</button>
-      <button class="mod" data-mod="multifuncional"><span class="sw"></span>Módulo Multifuncional</button>
-      <button class="mod" data-mod="imp3d"><span class="sw"></span>Impressão 3D/Manufatura</button>
+      {% set labels = {
+        'suporte': 'Módulo Suporte à Vida',
+        'habitacional': 'Habitacional Privado',
+        'refeicoes': 'Alimentação e Refeições',
+        'medico': 'Médico',
+        'exercicios': 'Exercícios',
+        'trabalho': 'Trabalho e Pesquisa',
+        'armazenamento': 'Armazenamento',
+        'sanitario': 'Sanitário e Higiene',
+        'blindagem': 'Blindagem/Proteção',
+        'inflavel': 'Inflável Expansível',
+        'airlock': 'Airlock',
+        'tesserae': 'Estrutural Modular (TESSERAE)',
+        'cultura': 'Cultura e Lazer',
+        'robotico': 'Robótico Const./Manut.',
+        'hidroponia': 'Produção de Alimentos',
+        'controle': 'Controle e Comunicação',
+        'multifuncional': 'Módulo Multifuncional',
+        'imp3d': 'Impressão 3D/Manufatura'
+      } %}
+      {% if modulos_permitidos and modulos_permitidos|length > 0 %}
+        {% for key in modulos_permitidos %}
+          <button class="mod" data-mod="{{ key }}"><span class="sw"></span>{{ labels.get(key, key) }}</button>
+        {% endfor %}
+      {% else %}
+        <div class="hint">Nenhum módulo disponível: selecione na etapa anterior.</div>
+      {% endif %}
     </div>
+    <div id="total-counter" class="hint">Módulos no tabuleiro: 0 / {{ max_modulos|default(0) }}</div>
+    <div id="score-counter" class="hint">Pontuação do Habitat: 0</div>
     <div class="hint">
       • Arraste **conexões** e **formatos** para o tabuleiro.<br>
       • **Clique** em um módulo à direita para aplicar a **imagem do módulo** na peça **selecionada**.<br>
       • Dica: pressione **DEL** para remover a peça selecionada.
+    </div>
+    <div class="section">
+      <h4>Ordem Lógica de Conexão</h4>
+      <div class="hint">
+        Por que seguir as instruções de conexão?<br>
+        Ao chegar, a montagem correta dos habitats garante um ambiente seguro e funcional. Cada conexão tem um motivo: algumas partes são compatíveis, outras não. Seguir a lógica evita falhas e melhora a eficiência operacional.
+      </div>
+      <div class="hint tight">
+        Ordem sugerida para montar o habitat:
+        <br>1) Conectar <strong>Suporte à Vida</strong>
+        <br>2) Integrar <strong>Habitacional</strong>
+        <br>3) Acoplar <strong>Sanitário</strong>
+        <br>4) Adicionar <strong>Alimentação/Refeições</strong>
+        <br>5) Preparar <strong>Airlock</strong> para EVAs
+        <br>6) Completar com <strong>Armazenamento</strong>, <strong>Pesquisa/Trabalho</strong>, <strong>Exercícios</strong>, <strong>Hidroponia</strong> e <strong>Impressão 3D</strong>
+      </div>
+      <div class="hint tight">
+        Compatibilidade básica de conexões:
+        <br>• <strong>Suporte à Vida</strong> deve estar ligado a Habitacional, Sanitário e Alimentação.
+        <br>• <strong>Airlock</strong> conecta-se ao módulo estrutural próximo (hex/pent) e deve ter acesso livre.
+        <br>• <strong>Sanitário</strong> e <strong>Hidroponia</strong> compartilham recursos de água.
+        <br>• <strong>Impressão 3D</strong> e <strong>Armazenamento</strong> operam melhor em proximidade.
+      </div>
     </div>
   </aside>
 </div>
@@ -148,6 +136,8 @@
 <script>
 /* ---------- CONFIG: onde estão as IMAGENS dos módulos ---------- */
 /* Troque os paths pelos seus arquivos (.svg/.png) em ./icons/     */
+const MAX_MODULOS = {{ max_modulos|default(0) }};
+const LIMITES_POR_TIPO = {{ limites_por_tipo|tojson if limites_por_tipo is defined else '{}' }};
 const ICON_SRC = {
   suporte:        '{{ url_for('missao.icons', filename='suportevida.svg') }}',
   habitacional:   '{{ url_for('missao.icons', filename='privado.svg') }}',
@@ -204,6 +194,11 @@ function createPiece(data, x, y){
     el.appendChild(child);
     if(data.rot!=90) el.style.transform += ` rotate(${data.rot}deg)`;
   }else if(data.type==='module'){
+    const existentes = document.querySelectorAll('.piece[data-kind="module"]').length;
+    if (existentes >= MAX_MODULOS) {
+      alert('Limite de módulos atingido: você levou apenas '+MAX_MODULOS+'. Remova um módulo para adicionar outro.');
+      return;
+    }
     // desenha forma (hex/pent)
     const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('viewBox','0 0 100 100');
@@ -230,6 +225,8 @@ function createPiece(data, x, y){
   el.addEventListener('click', ()=> selectPiece(el));
   board.appendChild(el);
   selectPiece(el);
+  // Atualiza total de módulos no tabuleiro
+  updateTotal();
 }
 
 /* ---------- Seleção e arraste das peças ---------- */
@@ -256,6 +253,8 @@ function onMove(e){
 function endDrag(){
   document.removeEventListener('pointermove', onMove);
   dragging=null;
+  // Atualiza prontidão e pontuação ao finalizar arraste
+  updateReadyAndScore();
 }
 
 /* ---------- Aplicar IMAGEM do módulo ao clicar na lista ---------- */
@@ -270,20 +269,204 @@ document.getElementById('moduleList').addEventListener('click', (e)=>{
     alert('A imagem só pode ser aplicada em um módulo (hexágono/pentágono).');
     return;
   }
+  // Validações de ordem e compatibilidade básicas
+  const placedKeys = Array.from(document.querySelectorAll('.piece[data-kind="module"] img.icon'))
+    .map(img => img.alt)
+    .filter(Boolean);
   const key = btn.dataset.mod;
+  // Ordem lógica adicional: exigir Habitacional antes de Sanitário e Refeições
+  if ((key === 'sanitario' || key === 'refeicoes') && !placedKeys.includes('habitacional')) {
+    alert('Antes de aplicar "' + (btn.textContent || key) + '", conecte o módulo Habitacional.');
+    return;
+  }
+  // Limite por tipo: permitir múltiplas unidades somente se selecionadas
+  const maxPorTipo = (LIMITES_POR_TIPO && LIMITES_POR_TIPO[key] != null) ? LIMITES_POR_TIPO[key] : 0;
+  const usadosDoTipo = placedKeys.filter(k => k === key).length;
+  if (usadosDoTipo >= maxPorTipo) {
+    const nome = (btn.textContent || key);
+    if (maxPorTipo === 0) {
+      alert('"' + nome + '" não foi levado na missão. Volte e selecione este módulo para utilizá-lo aqui.');
+    } else if (maxPorTipo === 1) {
+      alert('Você levou apenas 1 unidade de "' + nome + '". Remova a existente para trocar.');
+    } else {
+      alert('Limite atingido para "' + nome + '": ' + maxPorTipo + ' unidades foram levadas.');
+    }
+    return;
+  }
+  // Gate: exigir Suporte à Vida antes de alguns módulos críticos
+  const requiresSuporte = ['habitacional','sanitario','refeicoes','hidroponia'];
+  if (requiresSuporte.includes(key) && !placedKeys.includes('suporte')) {
+    alert('Antes de aplicar "' + (btn.textContent || key) + '", conecte o módulo Suporte à Vida.');
+    return;
+  }
+  // Gate de ordem sugerida: Suporte -> Habitacional -> Sanitário/Alimentação
+  if (key === 'habitacional' && placedKeys.includes('sanitario')) {
+    alert('Conecte Habitacional antes de Sanitário para manter a lógica de montagem.');
+    return;
+  }
   const src = ICON_SRC[key];
   if(!src){ alert('Imagem não configurada para: '+key); return; }
   const img = currentSelection.querySelector('img.icon');
   img.src = src;           // ← usa seu arquivo .svg/.png
   img.alt = key;
+  updateBadges();
+  updateReadyAndScore();
 });
 
 /* ---------- Delete: remove peça selecionada ---------- */
 window.addEventListener('keydown', (e)=>{
   if(e.key==='Delete' && currentSelection){
     currentSelection.remove(); currentSelection=null;
+    updateBadges();
+    updateTotal();
   }
 });
+
+/* ---------- Limpar módulo da peça selecionada ---------- */
+document.getElementById('btn-clear').addEventListener('click', ()=>{
+  if(!currentSelection){ alert('Selecione uma peça para limpar o módulo.'); return; }
+  if(currentSelection.dataset.kind!=='module'){ alert('A limpeza se aplica apenas a peças de módulo.'); return; }
+  const img = currentSelection.querySelector('img.icon');
+  if(img){ img.src=''; img.alt=''; }
+  updateBadges();
+  updateReadyAndScore();
+});
+
+/* ---------- Excluir peça selecionada via botão ---------- */
+document.getElementById('btn-remove').addEventListener('click', ()=>{
+  if(!currentSelection){ alert('Selecione uma peça para excluir.'); return; }
+  currentSelection.remove(); currentSelection=null;
+  updateBadges();
+  updateTotal();
+  updateReadyAndScore();
+});
+
+/* ---------- Contadores de quantidade ---------- */
+function ensureBadges(){
+  document.querySelectorAll('#moduleList .mod').forEach(btn=>{
+    if(!btn.querySelector('.badge')){
+      const b = document.createElement('span');
+      b.className = 'badge';
+      btn.appendChild(b);
+    }
+  });
+}
+function getUsedCounts(){
+  const used = {};
+  document.querySelectorAll('.piece[data-kind="module"] img.icon').forEach(img=>{
+    const k = img.alt;
+    if(k){ used[k] = (used[k]||0)+1; }
+  });
+  return used;
+}
+function updateBadges(){
+  ensureBadges();
+  const used = getUsedCounts();
+  document.querySelectorAll('#moduleList .mod').forEach(btn=>{
+    const key = btn.dataset.mod;
+    const total = (LIMITES_POR_TIPO && LIMITES_POR_TIPO[key]!=null) ? LIMITES_POR_TIPO[key] : 0;
+    const usedCount = used[key] || 0;
+    const remaining = Math.max(0, total - usedCount);
+    const badge = btn.querySelector('.badge');
+    if(badge){
+      badge.textContent = `${remaining}/${total}`;
+      badge.classList.remove('warn','zero');
+      if(remaining === 0){
+        badge.classList.add('zero');
+      } else if(remaining === 1){
+        badge.classList.add('warn');
+      }
+    }
+  });
+}
+function updateTotal(){
+  const total = document.querySelectorAll('.piece[data-kind="module"]').length;
+  const el = document.getElementById('total-counter');
+  if(el){ el.textContent = `Módulos no tabuleiro: ${total} / ${MAX_MODULOS}`; }
+}
+
+/* ---------- Pontuação e prontidão para finalizar ---------- */
+function computeHabitatScore(){
+  const keys = Array.from(document.querySelectorAll('.piece[data-kind="module"] img.icon'))
+    .map(img => img.alt).filter(Boolean);
+  const pieces = Array.from(document.querySelectorAll('.piece[data-kind="module"]'));
+  const connCount = document.querySelectorAll('.piece[data-kind="conn"]').length;
+  let pontos = 0;
+  const base = { suporte: 20, habitacional: 15, sanitario: 10, refeicoes: 10 };
+  keys.forEach(k => { pontos += (base[k] || 6); });
+  // Bônus de lógica de ordem
+  const hasSup = keys.includes('suporte');
+  const hasHab = keys.includes('habitacional');
+  const hasSan = keys.includes('sanitario');
+  const hasRef = keys.includes('refeicoes');
+  if(hasSup && hasHab) pontos += 10;
+  if(hasHab && hasSan) pontos += 6;
+  if(hasHab && hasRef) pontos += 6;
+  // Conexões (proxy: quantidade de peças de conexão)
+  pontos += Math.min(connCount * 2, 20);
+  // Precisão do grid: bônus por alinhamento próximo à grade de 20px
+  pieces.forEach(p => {
+    const x = parseFloat(p.style.left||'0');
+    const y = parseFloat(p.style.top||'0');
+    const rx = Math.min(x % 20, 20 - (x % 20));
+    const ry = Math.min(y % 20, 20 - (y % 20));
+    if(rx <= 3 && ry <= 3) pontos += 2;
+  });
+  // Penalização simples por sobreposição (centros muito próximos)
+  let penal = 0;
+  for(let i=0;i<pieces.length;i++){
+    const a = pieces[i];
+    const ax = parseFloat(a.style.left||'0');
+    const ay = parseFloat(a.style.top||'0');
+    for(let j=i+1;j<pieces.length;j++){
+      const b = pieces[j];
+      const bx = parseFloat(b.style.left||'0');
+      const by = parseFloat(b.style.top||'0');
+      const dx = ax - bx, dy = ay - by;
+      const d = Math.hypot(dx, dy);
+      if(d < 40) penal += 5;
+    }
+  }
+  pontos -= Math.min(penal, 30);
+  return { total: Math.max(0, Math.round(pontos)), detalhes: { modulos: keys.length, conexoes: connCount } };
+}
+
+function isHabitatReady(){
+  const keys = Array.from(document.querySelectorAll('.piece[data-kind="module"] img.icon'))
+    .map(img => img.alt).filter(Boolean);
+  const connCount = document.querySelectorAll('.piece[data-kind="conn"]').length;
+  return keys.includes('suporte') && keys.includes('habitacional') && keys.length >= 3 && connCount >= 1;
+}
+
+function updateReadyAndScore(){
+  const scoreEl = document.getElementById('score-counter');
+  const btn = document.getElementById('btn-finalizar');
+  const hidden = document.getElementById('habitatScoreInput');
+  const res = computeHabitatScore();
+  if(scoreEl){ scoreEl.textContent = `Pontuação do Habitat: ${res.total}`; }
+  if(hidden){ hidden.value = String(res.total); }
+  const ready = isHabitatReady();
+  if(btn){
+    btn.disabled = !ready;
+    btn.title = ready ? 'Pronto para finalizar' : 'Monte seu habitat (mínimo: Suporte + Habitacional + 1 conexão)';
+  }
+}
+
+// Intercepta envio para garantir pontuação e prontidão
+document.getElementById('finalizarForm').addEventListener('submit', (e)=>{
+  if(!isHabitatReady()){
+    e.preventDefault();
+    alert('Monte seu habitat antes de finalizar. Mínimo: Suporte à Vida + Habitacional + 1 conexão.');
+    return;
+  }
+  const res = computeHabitatScore();
+  document.getElementById('habitatScoreInput').value = String(res.total);
+});
+
+// Inicialização de contadores
+updateBadges();
+updateTotal();
+updateReadyAndScore();
 </script>
 </body>
 </html>
