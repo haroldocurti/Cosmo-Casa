@@ -1,4 +1,16 @@
-"""Blueprint administrativo de professor: dashboard e gestão de salas."""
+"""Blueprint administrativo de Professor (Admin).
+
+Responsabilidades e fluxo:
+- Dashboard com visão de salas ativas/inativas, ranking e métricas;
+- CRUD de salas: criar, fechar/reabrir, excluir, exportar CSV;
+- Gestão de desafios: criar, editar, selecionar e registrar para a sala;
+- Detalhes da sala com alunos, progresso e links de acesso.
+
+Notas de usabilidade (para docentes):
+- O botão "Trocar senha" permanece visível para o usuário admin, facilitando
+  testes e manutenção sem bloquear o fluxo;
+- Operações são baseadas exclusivamente em SQLite para simplificar implantação.
+"""
 
 import json
 import sqlite3
@@ -142,7 +154,11 @@ def reset_password():
 
 @professor_bp.route('/dashboard', endpoint='professor_dashboard')
 def dashboard():
-    """Dashboard do professor lendo apenas do SQLite (salas ativas e inativas)."""
+    """Dashboard do professor com listas de salas ativas e inativas.
+
+    Lê diretamente do SQLite e agrega contagem de alunos e desafios para
+    oferecer uma visão rápida da turma e da organização atual.
+    """
     ranking = []
     salas = []
     salas_inativas = []
@@ -260,7 +276,10 @@ def criar_desafio():
 
 @professor_bp.route('/sala/<codigo_sala>/desafio/criar', methods=['GET', 'POST'], endpoint='professor_criar_desafio_para_sala')
 def criar_desafio_para_sala(codigo_sala):
-    """Cria um desafio simples diretamente no SQLite e retorna ao dashboard."""
+    """Cria um desafio simples diretamente no SQLite e retorna ao dashboard.
+
+    O desafio é anexado ao JSON de desafios da sala, preservando histórico.
+    """
     try:
         sala = db_manager.buscar_sala_por_codigo_any(codigo_sala)
         if sala:
@@ -280,7 +299,10 @@ def criar_desafio_para_sala(codigo_sala):
 
 @professor_bp.route('/sala/fechar', methods=['POST'], endpoint='professor_sala_fechar')
 def sala_fechar():
-    """Fecha (desativa) uma sala ativa pelo código."""
+    """Fecha (desativa) uma sala ativa pelo código.
+
+    Mantém os dados no SQLite para permitir reabertura e auditoria posterior.
+    """
     codigo_sala = request.form.get('codigo_sala')
     if not codigo_sala:
         return redirect(url_for('professor.professor_dashboard'))
@@ -293,7 +315,11 @@ def sala_fechar():
 
 @professor_bp.route('/sala/reabrir', methods=['POST'], endpoint='professor_sala_reabrir')
 def sala_reabrir():
-    """Reabre uma sala inativa e fecha as demais para manter uma ativa."""
+    """Reabre uma sala inativa e fecha as demais para manter uma ativa.
+
+    Garante a existência de apenas uma sala ativa por vez para reduzir
+    ambiguidade no fluxo do aluno.
+    """
     codigo_sala = request.form.get('codigo_sala')
     if not codigo_sala:
         return redirect(url_for('professor.professor_dashboard'))
@@ -311,7 +337,10 @@ def sala_reabrir():
 
 @professor_bp.route('/desafio/editar', methods=['POST'], endpoint='professor_editar_desafio')
 def editar_desafio():
-    """Edita título/descrição de um desafio pelo índice."""
+    """Edita título/descrição de um desafio pelo índice.
+
+    Usa índice baseado no array de desafios da sala; valida faixas.
+    """
     codigo_sala = request.form.get('codigo_sala')
     idx_raw = request.form.get('desafio_index')
     titulo = request.form.get('titulo', '').strip()
@@ -371,7 +400,10 @@ def excluir_desafio():
 
 @professor_bp.route('/desafio/selecionar', methods=['POST'], endpoint='professor_selecionar_desafio')
 def selecionar_desafio():
-    """Seleciona um desafio da sala para que a descrição seja exibida."""
+    """Seleciona um desafio da sala para que a descrição seja exibida.
+
+    Atualiza `desafio_selecionado_index` para destacar na UI de detalhes.
+    """
     codigo_sala = request.form.get('codigo_sala')
     idx_raw = request.form.get('desafio_index')
     if not codigo_sala or idx_raw is None:
@@ -461,8 +493,11 @@ def excluir_aluno_ranking():
 
 @professor_bp.route('/sala/<codigo_sala>', endpoint='professor_sala_detalhes')
 def sala_detalhes(codigo_sala):
-    
-    """Detalhes da sala e links de acesso dos alunos, lendo exclusivamente do SQLite."""
+    """Detalhes da sala com alunos, desempenho e links de acesso.
+
+    Lê exclusivamente do SQLite, agrega precisão e tentativas por aluno,
+    e exibe os desafios com estatísticas resumidas.
+    """
     print(f'Função sala_detalhes chamada para código: {codigo_sala}')  # Print de depuração
     must_change_admin = 0
     professor_nome = session.get('professor_nome') or 'Administrador'
@@ -578,6 +613,7 @@ def sala_detalhes(codigo_sala):
 
 @professor_bp.route('/desafio/registrar', endpoint='professor_registrar_desafio')
 def registrar_desafio():
+    """Registra destino e nave para a sala e cria um desafio básico."""
     codigo_sala = request.args.get('codigo_sala')
     destino = request.args.get('destino')
     nave_id = request.args.get('nave_id')
@@ -611,7 +647,10 @@ def registrar_desafio():
 
 @professor_bp.route('/sala/excluir', methods=['POST'], endpoint='professor_sala_excluir')
 def sala_excluir():
-    """Exclui definitivamente uma sala (permitido para salas inativas)."""
+    """Exclui definitivamente uma sala (permitido para salas inativas).
+
+    Mantém regra: só excluir se `ativa = 0` para evitar perda acidental.
+    """
     codigo_sala = request.form.get('codigo_sala')
     if not codigo_sala:
         return redirect(url_for('professor.professor_dashboard'))
@@ -627,7 +666,10 @@ def sala_excluir():
 
 @professor_bp.route('/sala/<codigo_sala>/exportar', endpoint='professor_sala_exportar')
 def sala_exportar(codigo_sala):
-    """Exporta CSV com alunos e respostas da sala."""
+    """Exporta CSV com alunos e respostas da sala.
+
+    Gera CSV com duas seções lógicas: cadastro de alunos e respostas.
+    """
     try:
         sala = db_manager.buscar_sala_por_codigo_any(codigo_sala)
         if not sala:

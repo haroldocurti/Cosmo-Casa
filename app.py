@@ -1,3 +1,19 @@
+"""Aplicação Flask principal do projeto Cosmo-Casa.
+
+Responsabilidades:
+- Registrar blueprints de Professor (admin), Aluno e Missão;
+- Expor rotas de índice e seleção de missão (landing e seleção);
+- Manter dados de contexto (naves, módulos, eventos) para páginas e simulação;
+- Fornecer alias de imagens estáticas para compatibilidade com caminhos de front-end.
+
+Fluxo resumido:
+- Professores criam/gerenciam salas via `/professor`;
+- Alunos entram com código e nome via rotas de aluno;
+- Seleção/montagem de módulos e viagem são tratadas pelo blueprint `missao`.
+
+Este arquivo deve permanecer leve em lógica de negócio; operações de CRUD e
+simulação residem nos blueprints e em `services.db`.
+"""
 # app.py
 import math
 import logging
@@ -15,11 +31,11 @@ app = Flask(__name__)
 # Usa SECRET_KEY do ambiente em produção; mantém fallback para desenvolvimento
 app.secret_key = os.getenv('SECRET_KEY', 'minha_nasa_minha_vida_secret_key_2024')
 
-from services.db import db_manager
+from services.db import db_manager  # Gerencia SQLite e operações de persistência
 from routes.professor import professor_bp
 from routes.aluno import aluno_bp
 from routes.missao import missao_bp
-from services.data import NAVES_ESPACIAIS, MODULOS_HABITAT, EVENTOS_ALEATORIOS
+from services.data import NAVES_ESPACIAIS, MODULOS_HABITAT, EVENTOS_ALEATORIOS  # Catálogos estáticos para UI/simulações
 
 
 # Removido o uso de json_store: sistema unificado em SQLite
@@ -28,6 +44,7 @@ from services.data import NAVES_ESPACIAIS, MODULOS_HABITAT, EVENTOS_ALEATORIOS
 # --- DEFINIÇÃO DAS ROTAS ---
 
 # --- CONSTANTES FÍSICAS PARA CÁLCULOS ---
+# Mantidas para cálculos auxiliares de nave/trajetória (educacional)
 GRAVIDADE_TERRA = 9.81  # m/s²
 CONSTANTE_GRAVITACIONAL = 6.67430e-11  # m³/kg/s²
 MASA_TERRA = 5.972e24  # kg
@@ -256,13 +273,13 @@ EVENTOS_ALEATORIOS = [
 # Rota para a página inicial ('/') com endpoint 'index' para compatibilidade
 @app.route('/', endpoint='index')
 def tela_inicial():
-    """Renderiza a tela inicial do jogo."""
+    """Landing page com links para aluno e professor."""
     return render_template('index.html')
 
 # Rota para a página de seleção de missão ('/selecao')
 @app.route('/selecao')
 def tela_selecao():
-    """Renderiza a tela de seleção de destino."""
+    """Tela de seleção de destino com cards educativos e estatísticas."""
     missoes = {
         'lua': {
             'nome': 'Lua', 
@@ -340,7 +357,10 @@ IMAGENS_ALIAS_MAP = {
 
 @app.route('/static/images/<path:filename>')
 def static_images_alias(filename):
-    # Mapeia nomes conhecidos .png para os .svg reais na pasta 'imagens'
+    """Alias `/static/images/*` para arquivos em `static/imagens/*`.
+
+    Traduz nomes conhecidos `.png` para os `.svg` reais quando aplicável.
+    """
     alvo = IMAGENS_ALIAS_MAP.get(filename, filename)
     return send_from_directory(os.path.join(app.root_path, 'static', 'imagens'), alvo)
 

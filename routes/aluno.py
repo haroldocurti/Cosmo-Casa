@@ -1,5 +1,11 @@
 """Blueprint de rotas de aluno: login, entrada e respostas.
 
+Foco em usabilidade e clareza para estudantes:
+- `aluno_login`: valida nome exato na lista da sala (feedback claro);
+- `aluno_entrar`: fluxo por código + nome com normalização (acentos/espaços);
+- `modulo_underscore_espaco`: página pós-login com informações da sala;
+- `api/registrar-resposta`: registro simplificado das respostas dos desafios.
+
 Mantém a mesma API pública, separando responsabilidades de app.py.
 """
 
@@ -15,7 +21,13 @@ aluno_bp = Blueprint('aluno', __name__)
 
 @aluno_bp.route('/aluno/login/<codigo_sala>', methods=['GET', 'POST'])
 def aluno_login(codigo_sala):
-    """Login do aluno: valida se nome corresponde exatamente à lista."""
+    """Login do aluno: valida se nome corresponde exatamente à lista.
+
+    Mostra mensagem de erro amigável em casos comuns:
+    - Sala inexistente ou inativa
+    - Campo de nome vazio
+    - Nome não encontrado (sugere verificar acentos e espaços)
+    """
     sala = db_manager.buscar_sala_por_codigo(codigo_sala)
     if not sala:
         return "Sala não encontrada", 404
@@ -54,7 +66,12 @@ def aluno_login(codigo_sala):
 
 @aluno_bp.route('/aluno/entrar', methods=['GET', 'POST'])
 def aluno_entrar():
-    """Entrada do aluno via código da sala e nome; redireciona direto ao desafio."""
+    """Entrada do aluno por código da sala e nome; vai direto ao desafio.
+
+    Normaliza nomes para reduzir fricção de digitação:
+    - Remove acentos e combina espaços
+    - Usa casefold para igualdade independente de maiúsculas/minúsculas
+    """
     erro = None
     sala = None
     if request.method == 'POST':
@@ -107,7 +124,10 @@ def aluno_entrar():
 
 @aluno_bp.route('/modulo_underscore_espaco/<codigo_sala>')
 def modulo_underscore_espaco(codigo_sala):
-    """Página pós-login (Módulo_Underscore_Espaço)."""
+    """Página pós-login (Módulo_Underscore_Espaço).
+
+    Exibe dados essenciais da sala e oferece retorno à página inicial.
+    """
     sala = db_manager.buscar_sala_por_codigo(codigo_sala)
     if not sala:
         return "Sala não encontrada", 404
@@ -119,7 +139,11 @@ def modulo_underscore_espaco(codigo_sala):
 
 @aluno_bp.route('/api/registrar-resposta', methods=['POST'])
 def api_registrar_resposta():
-    """API para registrar respostas dos alunos."""
+    """API para registrar respostas dos alunos.
+
+    Em produção, recomenda-se validar formato e conteúdo da resposta,
+    bem como associar o desafio à sala e ao aluno via chaves estritas.
+    """
     try:
         data = request.get_json()
         aluno_id = data.get('aluno_id')

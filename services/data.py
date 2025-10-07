@@ -124,3 +124,12 @@ EVENTOS_ALEATORIOS = [
         "efeito": "bonus_economia"
     }
 ]
+"""Dados estáticos utilizados pela UI e simulação do Cosmo-Casa.
+
+- `NAVES_ESPACIAIS`: catálogo com nome, imagem e notas educativas;
+- `MODULOS_HABITAT`: módulos do habitat com descrição e atributos;
+- `EVENTOS_ALEATORIOS`: eventos para simulação em turnos com efeitos.
+
+Mantém o conteúdo pedagógico separado da lógica, permitindo evoluções
+independentes e eventual internacionalização.
+"""

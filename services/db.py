@@ -4,6 +4,13 @@ from datetime import datetime, timedelta
 
 
 class DatabaseManager:
+    """Gerencia conexão e operações no banco SQLite.
+
+    Notas:
+    - Usa `db_path` como arquivo único do banco;
+    - As operações são focadas em robustez e simplicidade para ambiente escolar;
+    - Em produção, recomenda-se migração para um ORM (SQLAlchemy) e testes unitários.
+    """
     def __init__(self, db_path='salas_virtuais.db'):
         self.db_path = db_path
         self.init_db()
@@ -445,3 +452,12 @@ class DatabaseManager:
 
 # Instância compartilhada
 db_manager = DatabaseManager()
+"""Camada de acesso a dados (SQLite) do Cosmo-Casa.
+
+Fornece operações para professores e alunos:
+- Salas virtuais: criar, atualizar destino/nave, fechar/reabrir, excluir;
+- Alunos: adicionar, listar, ranking e estatísticas;
+- Desafios: armazenados em JSON por sala (simplificado para esta versão).
+
+Mantém a aplicação simples e portável, sem dependências de servidor externo.
+"""

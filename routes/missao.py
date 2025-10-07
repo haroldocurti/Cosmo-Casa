@@ -1,6 +1,14 @@
-"""Blueprint de rotas de missão: seleção de nave/módulos e simulação.
+"""Blueprint de Missão: seleção de nave/módulos e simulação.
 
-Separa a lógica de missão do arquivo principal.
+Responsabilidades:
+- Seleção de nave e destino para criar contexto da missão;
+- Escolha e montagem dos módulos do habitat com conteúdo educativo;
+- Simulação em turnos de eventos aleatórios com impacto nos recursos;
+- Exposição de assets estáticos associados (imagens, dados educativos).
+
+Design pedagógico:
+- Progressão em etapas com feedback imediato (texto e métricas);
+- Eventos aleatórios ilustram trade-offs de engenharia e sustentabilidade.
 """
 
 import random
