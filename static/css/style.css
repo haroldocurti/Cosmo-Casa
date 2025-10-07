@@ -970,7 +970,7 @@ body.conteudo-centralizado.selecao-modulos::before {
 .topbar .user { color:#fff; font-weight:600; font-family: 'korataki'; }
 .topbar-actions { display:flex; gap:8px; align-items:center; }
 .topbar .action-btn { padding: 8px 8px ; background: #7FB500; color: #fff; border: 1px solid ; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; text-decoration: none; }
-.topbar .action-btn:hover { background: #fff; color: ; transform: translateY(-1px); }
+.topbar .action-btn:hover { background: #fff; color: #7FB500 ; transform: translateY(-1px); }
 .topbar .action-btn.danger { background: rgba(255, 99, 71, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
 
 /* Banner de alerta reutilizável */

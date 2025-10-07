@@ -1,10 +1,6 @@
 /* Estrutura Principal */
-:root {
-    /* --btn-green: #64ffda;
-    --btn-text: #0F172A;
-    /* --btn-hover-bg: #7fffea; */
-    /* --btn-hover-text: #0B1224; */ 
-}
+
+
 .main-container {
     width: 92%;
     max-width: 1000px; /* Mais compacto para desktop e mobile */
