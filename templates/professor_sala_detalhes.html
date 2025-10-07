@@ -7,9 +7,23 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/detalhes.css') }}">
     
+    
 </head>
 <body class="conteudo-centralizado">
     <div class="main-container">
+        <div class="topbar">
+            <div class="user">Bem-vindo, {{ professor_nome or 'Professor' }}</div>
+            <div class="topbar-actions">
+                <a href="{{ url_for('professor.professor_reset_password', next=request.path) }}" class="action-btn">Trocar senha</a>
+                <a href="{{ url_for('professor.professor_logout') }}" class="action-btn danger">Sair</a>
+            </div>
+        </div>
+        {% if must_change_admin %}
+        <div class="alert-banner">
+            <div class="msg">Sua senha padrão ainda está ativa. Por segurança, troque a senha.</div>
+            <a href="{{ url_for('professor.professor_reset_password', next=request.path) }}" class="action-btn">Trocar senha</a>
+        </div>
+        {% endif %}
         <a href="{{ url_for('professor.professor_dashboard') }}" class="back-btn">
             &larr; Voltar ao Dashboard
         </a>

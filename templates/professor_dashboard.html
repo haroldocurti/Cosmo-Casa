@@ -6,11 +6,19 @@
     <title>Dashboard Professor - Minha NASA Minha Vida</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
 </head>
 <body class="conteudo-centralizado">
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
+    <div class="topbar">
+        <div class="user">Bem-vindo, {{ professor_nome or 'Professor' }}</div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('professor.professor_reset_password', next=request.path) }}" class="action-btn">Trocar senha</a>
+            <a href="{{ url_for('professor.professor_logout') }}" class="action-btn danger">Sair</a>
+        </div>
+    </div>
     
     <main class="dashboard-container">
         <div class="page-grid">
@@ -18,6 +26,12 @@
                 <div class="dashboard-header">
                     <h2>Dashboard do Professor</h2>
                 </div>
+                {% if must_change_admin %}
+                <div class="alert-banner">
+                    <div class="msg">Sua senha padrão ainda está ativa. Por segurança, troque a senha.</div>
+                    <a href="{{ url_for('professor.professor_reset_password', next=request.path) }}" class="action-btn">Trocar senha</a>
+                </div>
+                {% endif %}
                 <!-- Cards de Ações Principais -->
                 <div class="dashboard-grid">
             <!-- Card de Ranking -->

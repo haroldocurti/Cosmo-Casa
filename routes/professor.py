@@ -5,12 +5,139 @@ import sqlite3
 import logging
 from datetime import datetime
 
-from flask import Blueprint, render_template, request, redirect, url_for, Response
+from flask import Blueprint, render_template, request, redirect, url_for, Response, session
+import os
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from services.db import db_manager
 
 
 professor_bp = Blueprint('professor', __name__)
+
+
+# --- Proteção de acesso (RBAC) para rotas do blueprint professor ---
+@professor_bp.before_request
+def _require_professor_role():
+    """Exige papel 'professor' (ou sessão com professor_id) para acesso.
+
+    - Exceções: rotas de login/logout do professor.
+    - Para requisições GET não autorizadas, redireciona para login com `next`.
+    - Para POST/PUT/DELETE não autorizados, responde 403.
+    """
+    allowed = {
+        'professor.professor_login',
+        'professor.professor_logout',
+    }
+    if request.endpoint in allowed:
+        return None
+    try:
+        if (session.get('user_role') in {'professor', 'admin'}) or session.get('professor_id'):
+            return None
+    except Exception:
+        pass
+    if request.method == 'GET':
+        # Redireciona para login preservando destino
+        return redirect(url_for('professor.professor_login', next=request.path))
+    return Response("Acesso negado: professor requerido.", status=403)
+
+
+@professor_bp.route('/login', methods=['GET', 'POST'], endpoint='professor_login')
+def login():
+    """Login simples de professor usando senha de ambiente.
+
+    Define `session['user_role']='professor'` e `session['professor_id']` ao autenticar.
+    """
+    erro = None
+    # Garantir tabela e admin padrão
+    try:
+        with sqlite3.connect(db_manager.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS admins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    must_change INTEGER DEFAULT 1,
+                    created_at TEXT
+                )
+            ''')
+            cursor.execute('SELECT COUNT(*) FROM admins')
+            count = cursor.fetchone()[0]
+            if count == 0:
+                # Cria admin padrão com senha 'admin' e exige troca
+                default_hash = generate_password_hash('admin')
+                cursor.execute(
+                    'INSERT INTO admins (username, password_hash, must_change, created_at) VALUES (?, ?, ?, ?)',
+                    ('admin', default_hash, 1, datetime.utcnow().isoformat())
+                )
+                conn.commit()
+    except Exception:
+        logging.exception('Falha ao garantir tabela admins')
+
+    if request.method == 'POST':
+        usuario = (request.form.get('usuario') or '').strip()
+        senha = request.form.get('senha') or ''
+        # Autenticar via tabela admins (por enquanto, apenas usuário 'admin')
+        try:
+            with sqlite3.connect(db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT id, username, password_hash, must_change FROM admins WHERE username = ?', ('admin',))
+                row = cursor.fetchone()
+                if row and check_password_hash(row[2], senha):
+                    session['user_role'] = 'admin'
+                    session['professor_id'] = row[0]
+                    session['professor_nome'] = usuario or row[1]
+                    # Se precisa trocar senha, direciona para reset
+                    if (row[3] or 0) == 1:
+                        return redirect(url_for('professor.professor_reset_password', next=request.args.get('next')))
+                    destino = request.args.get('next') or url_for('professor.professor_dashboard')
+                    return redirect(destino)
+                else:
+                    erro = 'Credenciais inválidas. Tente novamente.'
+        except Exception:
+            logging.exception('Falha na autenticação do admin')
+            erro = 'Erro ao autenticar. Tente novamente.'
+    return render_template('professor_login.html', erro=erro)
+
+
+@professor_bp.route('/logout', endpoint='professor_logout')
+def logout():
+    """Logout do professor: limpa sessão e volta para home."""
+    try:
+        for k in ('user_role', 'professor_id', 'professor_nome'):
+            session.pop(k, None)
+    except Exception:
+        pass
+    return redirect(url_for('index'))
+
+
+@professor_bp.route('/reset-password', methods=['GET', 'POST'], endpoint='professor_reset_password')
+def reset_password():
+    """Troca de senha obrigatória no primeiro login do admin."""
+    # Exige estar logado como admin
+    if not (session.get('user_role') == 'admin'):
+        return redirect(url_for('professor.professor_login', next=request.path))
+    erro = None
+    if request.method == 'POST':
+        nova = (request.form.get('nova_senha') or '').strip()
+        confirma = (request.form.get('confirmar_senha') or '').strip()
+        if len(nova) < 6:
+            erro = 'A senha deve ter pelo menos 6 caracteres.'
+        elif nova != confirma:
+            erro = 'As senhas não coincidem.'
+        else:
+            try:
+                with sqlite3.connect(db_manager.db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('UPDATE admins SET password_hash = ?, must_change = 0 WHERE username = ?',
+                                   (generate_password_hash(nova), 'admin'))
+                    conn.commit()
+                destino = request.args.get('next') or url_for('professor.professor_dashboard')
+                return redirect(destino)
+            except Exception:
+                logging.exception('Falha ao atualizar senha do admin')
+                erro = 'Não foi possível atualizar a senha. Tente novamente.'
+    return render_template('professor_reset_password.html', erro=erro)
 
 
 @professor_bp.route('/dashboard', endpoint='professor_dashboard')
@@ -20,6 +147,8 @@ def dashboard():
     salas = []
     salas_inativas = []
     estatisticas_salas = []
+    must_change_admin = 0
+    professor_nome = session.get('professor_nome') or 'Administrador'
 
     # Salas ativas
     try:
@@ -100,7 +229,27 @@ def dashboard():
     except Exception:
         estatisticas_salas = []
 
-    return render_template('professor_dashboard.html', ranking=ranking, salas=salas, salas_inativas=salas_inativas, estatisticas_salas=estatisticas_salas)
+    # Verificar necessidade de troca de senha (somente admin)
+    try:
+        if session.get('user_role') == 'admin':
+            with sqlite3.connect(db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT must_change FROM admins WHERE username = ?', ('admin',))
+                row = cursor.fetchone()
+                if row:
+                    must_change_admin = row[0] or 0
+    except Exception:
+        logging.exception('Falha ao obter flag must_change do admin')
+
+    return render_template(
+        'professor_dashboard.html',
+        ranking=ranking,
+        salas=salas,
+        salas_inativas=salas_inativas,
+        estatisticas_salas=estatisticas_salas,
+        must_change_admin=must_change_admin,
+        professor_nome=professor_nome,
+    )
 
 
 @professor_bp.route('/criar-desafio', methods=['POST'], endpoint='professor_criar_desafio')
@@ -315,6 +464,8 @@ def sala_detalhes(codigo_sala):
     
     """Detalhes da sala e links de acesso dos alunos, lendo exclusivamente do SQLite."""
     print(f'Função sala_detalhes chamada para código: {codigo_sala}')  # Print de depuração
+    must_change_admin = 0
+    professor_nome = session.get('professor_nome') or 'Administrador'
     # Tentar buscar pelo banco (inclui salas inativas)
     sala_db = db_manager.buscar_sala_por_codigo_any(codigo_sala)
     if sala_db:
@@ -388,6 +539,18 @@ def sala_detalhes(codigo_sala):
                 'media_pontos_por_tentativa': 0.0
             }
 
+        # Verificar necessidade de troca de senha (somente admin)
+        try:
+            if session.get('user_role') == 'admin':
+                with sqlite3.connect(db_manager.db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT must_change FROM admins WHERE username = ?', ('admin',))
+                    row = cursor.fetchone()
+                    if row:
+                        must_change_admin = row[0] or 0
+        except Exception:
+            logging.exception('Falha ao obter flag must_change do admin (detalhes)')
+
         sala_view = {
             'codigo_sala': sala_db.get('codigo_sala'),
             'nome_sala': sala_db.get('nome_sala'),
@@ -399,7 +562,15 @@ def sala_detalhes(codigo_sala):
             'desafios': desafios,
             'desafio_selecionado_index': sala_db.get('desafio_selecionado_index')
         }
-        return render_template('professor_sala_detalhes.html', sala=sala_view, alunos=alunos, turma_stats=turma_stats, desempenho_desafios=desempenho_desafios)
+        return render_template(
+            'professor_sala_detalhes.html',
+            sala=sala_view,
+            alunos=alunos,
+            turma_stats=turma_stats,
+            desempenho_desafios=desempenho_desafios,
+            must_change_admin=must_change_admin,
+            professor_nome=professor_nome,
+        )
 
     # Apenas SQLite
     return "Sala não encontrada", 404

@@ -922,7 +922,7 @@ body.conteudo-centralizado.selecao-modulos::before {
 .room-header .share-btn:hover { background-color: var(--btn-hover-bg); color: var(--btn-hover-text); border-color: var(--btn-hover-bg); }
 .room-header .room-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .room-header .action-btn { padding: 8px 12px; background-color: #334155; color: #e0e0e0; border: 1px solid #475569; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
-.room-header .action-btn:hover { background-color: #475569; transform: translateY(-1px); }
+.room-header .action-btn:hover { background-color: #7FB500; transform: translateY(-1px); }
 .room-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
 .info-card { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; text-align: center; }
 .info-icon { font-size: 32px; margin-bottom: 15px; color: #64ffda; }
@@ -964,6 +964,18 @@ body.conteudo-centralizado.selecao-modulos::before {
 
 /* ===== Alertas e painéis ===== */
 .alerta { padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107; }
+
+/* ===== Topbar (Professor) ===== */
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:8px 16px; ; border-bottom:1px solid rgba(255,255,255,0.08); border-radius: 8px; }
+.topbar .user { color:#fff; font-weight:600; font-family: 'korataki'; }
+.topbar-actions { display:flex; gap:8px; align-items:center; }
+.topbar .action-btn { padding: 8px 8px ; background: #7FB500; color: #fff; border: 1px solid ; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; text-decoration: none; }
+.topbar .action-btn:hover { background: #fff; color: ; transform: translateY(-1px); }
+.topbar .action-btn.danger { background: rgba(255, 99, 71, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
+
+/* Banner de alerta reutilizável */
+.alert-banner { margin:12px 0; padding:10px; border:1px solid #b58900; background:rgba(181,137,0,0.18); color:#ffd27f; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.alert-banner .msg { flex:1; }
 
 /* ===== Seleção de Módulos: painéis ===== */
 .info-performance { padding: 12px; background: rgba(100, 255, 218, 0.1); border-radius: 8px; border-left: 4px solid #64ffda; }
