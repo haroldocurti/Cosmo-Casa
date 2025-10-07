@@ -951,3 +951,40 @@ body.conteudo-centralizado.selecao-modulos::before {
 .challenge-title { color: white; font-weight: bold; margin-bottom: 10px; }
 .challenge-desc { color: #ccc; font-size: 14px; }
 @media (max-width: 768px) { .room-header { padding: 16px; gap: 16px; } .room-header .room-title { font-size: 1.4rem; } .room-header .room-subtitle { gap: 8px; } .room-header .room-right { width: 100%; justify-content: flex-start; flex-wrap: wrap; } }
+
+/* ===== Utilitários Globais ===== */
+.toolbar-row { display: flex; gap: 8px; align-items: center; }
+.toolbar-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mt-8 { margin-top: 8px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mt-16 { margin-top: 16px; }
+.pt-16 { padding-top: 16px; }
+.list-clean { margin: 5px 0; padding-left: 20px; }
+
+/* ===== Alertas e painéis ===== */
+.alerta { padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107; }
+
+/* ===== Seleção de Módulos: painéis ===== */
+.info-performance { padding: 12px; background: rgba(100, 255, 218, 0.1); border-radius: 8px; border-left: 4px solid #64ffda; }
+.info-performance h4 { margin: 0 0 8px 0; color: #64ffda; }
+.info-performance p { margin: 5px 0; font-size: 0.9em; }
+#explicacao-duracao { margin: 2px 0; font-size: 0.8em; color: #888; }
+
+.info-sobrevivencia { padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107; }
+.info-sobrevivencia h4 { margin: 0 0 8px 0; color: #ffc107; }
+
+/* ===== Viagem: ícones de eventos ===== */
+.evento-icone { width: 28px; height: 28px; margin-right: 8px; vertical-align: middle; }
+
+/* ===== Ranking ===== */
+.ranking-list { margin-top: 16px; }
+.ranking-item { padding: 12px; border: 1px solid #2b2b2b; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.02); }
+.ranking-index-circle { width: 36px; height: 36px; border-radius: 50%; background: #1f1f1f; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64ffda; }
+.ranking-medal { font-size: 1.1em; }
+.kpi-row { display: flex; gap: 16px; align-items: center; font-size: 0.95em; color: #ddd; }
+.kpi-icon { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
+
+.section-divider { border-top: 1px solid #ccc; }
+.section-title { color: #2c3e50; margin-bottom: 1rem; }
+.section-subtitle { color: #7f8c8d; margin-bottom: 1.5rem; }

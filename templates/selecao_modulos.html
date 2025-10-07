@@ -9,12 +9,20 @@
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
-    <div class="container-grande" style="display:flex;gap:8px;margin-top:8px;margin-bottom:8px">
+    <div class="container-grande toolbar-row mt-8 mb-8">
         {% if not session.get('aluno_id') %}
             <a href="{{ url_for('missao.montagem_transporte', destino=destino, codigo_sala=codigo_sala) }}" class="botao">Voltar</a>
         {% endif %}
-        <a href="{{ url_for('missao.ranking_rodada') }}" class="botao" style="background:#121212;border-color:#2b2b2b">Finalizar o Game</a>
+        <a href="{{ url_for('aluno.aluno_entrar') }}" class="botao">Finalizar o Game</a>
+        <a href="{{ url_for('missao.ranking_rodada') }}" class="botao">Ver Ranking</a>
     </div>
+    {% if session.get('erro_modulos') %}
+    <div class="container-grande mt-8">
+        <div class="alerta" role="alert">
+            {{ session.get('erro_modulos') }}
+        </div>
+    </div>
+    {% endif %}
 <form class="container-grande" action="{{ url_for('missao.viagem', destino=destino, nave_id=nave_id, codigo_sala=codigo_sala) }}" method="POST">
         
         <h2>Montagem da Carga</h2>
@@ -35,26 +43,26 @@
             </div>
             
             <!-- Novas informações de performance -->
-            <div id="info-performance" style="margin-top: 15px; padding: 12px; background: rgba(100, 255, 218, 0.1); border-radius: 8px; border-left: 4px solid #64ffda;">
-                <h4 style="margin: 0 0 8px 0; color: #64ffda;">Análise da Missão</h4>
-                <p style="margin: 5px 0; font-size: 0.9em;">
+            <div id="info-performance" class="info-performance mt-16">
+                <h4>Análise da Missão</h4>
+                <p>
                     <strong>Capacidade Máxima:</strong> 
                     <span id="capacidade-maxima">Calculando...</span>
                 </p>
-                <p style="margin: 5px 0; font-size: 0.9em;">
+                <p>
                     <strong>Duração Estimada:</strong> 
                     <span id="duracao-missao">Calculando...</span>
                 </p>
-                <p style="margin: 2px 0; font-size: 0.8em; color: #888;" id="explicacao-duracao">
+                <p id="explicacao-duracao">
                     Duração base calculada para missão {{ destino.capitalize() }}
                 </p>
             </div>
             
             <!-- Informações de sobrevivência apenas para missões lunares -->
             {% if destino.lower() == 'lua' %}
-            <div id="info-sobrevivencia" style="margin-top: 15px; padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107;">
-                <h4 style="margin: 0 0 8px 0; color: #ffc107;">🧭 Orientações de Sobrevivência Lunar</h4>
-                <ul style="margin: 5px 0; padding-left: 20px; font-size: 0.85em;">
+            <div id="info-sobrevivencia" class="info-sobrevivencia mt-16">
+                <h4>🧭 Orientações de Sobrevivência Lunar</h4>
+                <ul class="list-clean">
                     <li>Mantenha sistemas de suporte vital prioritários</li>
                     <li>Verifique selagem dos módulos habitacionais</li>
                     <li>Monitore níveis de oxigênio e pressão interna</li>
@@ -99,5 +107,38 @@
     </form>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+    // Bloqueio: impedir lançamento sem ao menos um módulo selecionado
+    document.addEventListener('DOMContentLoaded', function(){
+        const form = document.querySelector('form.container-grande[action*="/viagem/"]');
+        const hidden = document.getElementById('modulos-selecionados-hidden');
+        const botao = document.getElementById('botao-lancar');
+        function enforce(){
+            const count = hidden.querySelectorAll('input[name="modulos_selecionados"]').length;
+            if (count === 0) {
+                botao.disabled = true;
+                botao.style.opacity = '0.5';
+            } else if (!botao.disabled) {
+                botao.style.opacity = '1';
+            } else {
+                // reabilita somente se não houver outras restrições (capacidade etc. tratadas no script.js)
+                botao.disabled = false;
+                botao.style.opacity = '1';
+            }
+        }
+        enforce();
+        if (form) {
+            form.addEventListener('submit', function(e){
+                const count = hidden.querySelectorAll('input[name="modulos_selecionados"]').length;
+                if (count === 0) {
+                    e.preventDefault();
+                    alert('Selecione pelo menos um módulo para lançar a missão.');
+                }
+            });
+        }
+        const observer = new MutationObserver(enforce);
+        observer.observe(hidden, {childList:true});
+    });
+    </script>
 </body>
 </html>

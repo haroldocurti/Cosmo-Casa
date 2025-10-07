@@ -7,13 +7,49 @@
 </head>
 <body class="conteudo-centralizado">
     <header class="brand-header">
-        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
+        <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo" loading="lazy" decoding="async">
     </header>
     <div class="container-grande">
         <h2>Game Over</h2>
-        <p>A missão não alcançou o destino com condições suficientes. A montagem do Habitat está bloqueada.</p>
-        <div style="margin-top:16px;display:flex;gap:8px">
+        <p>A missão não alcançou o destino com condições suficientes. A montagem do Habitat está bloqueada por segurança.</p>
+
+        <div class="sumario-chegada">
+            <h3>Resumo da Missão</h3>
+            <div>
+                <span>Destino: <strong>{{ session.get('missao_destino')|default('—')|capitalize }}</strong></span>
+                <span style="margin-left:12px">Nave: <strong>{{ session.get('missao_nave')|default('—') }}</strong></span>
+                <span style="margin-left:12px">Pontuação: <strong>{{ session.get('missao_score')|default(0) }}</strong></span>
+            </div>
+        </div>
+
+        {% set feedback = session.get('missao_feedback') %}
+        {% if feedback %}
+        <div class="sumario-chegada">
+            <h3>Por que aconteceu?</h3>
+            <ul>
+                {% for linha in feedback.split('\n') %}
+                    {% if linha and ('Análise de Game Over' not in linha) %}
+                        <li>{{ linha }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="sumario-chegada">
+            <h3>Como melhorar na próxima tentativa</h3>
+            <ul>
+                <li>Garanta os módulos essenciais para o destino (Suporte à Vida + Habitacional; inclua Médico para Marte e Blindagem/Controle/Hidroponia para Exoplaneta).</li>
+                <li>Respeite a capacidade de carga da nave e reduza massa total quando necessário.</li>
+                <li>Evite avarias priorizando módulos de proteção e distribuição segura de recursos.</li>
+                <li>Siga a ordem lógica de montagem: Suporte à Vida → Habitacional → Sanitário/Alimentação → Airlock → demais.</li>
+                <li>Otimize conexões e organização do habitat para eficiência.</li>
+            </ul>
+        </div>
+
+        <div>
             <a href="{{ url_for('missao.retry_modulos') }}" class="botao">Montar Módulos Novamente</a>
+            <a href="{{ url_for('missao.ranking_rodada') }}" class="botao">Ver Ranking</a>
         </div>
     </div>
 </body>

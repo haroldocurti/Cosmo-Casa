@@ -105,6 +105,8 @@ class GerenciadorModulos {
 
 // Instância global do gerenciador
 const gerenciadorModulos = new GerenciadorModulos();
+// Flag para habilitar/desabilitar a interface de monitoramento
+const MONITORAMENTO_ATIVO = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -336,18 +338,22 @@ function calcularPerformanceMissao() {
 
     atualizarSumario();
     
-    // Criar interface de monitoramento se não existir
-    if (!document.querySelector('.monitoramento-section')) {
-        criarInterfaceMonitoramento();
+    // Monitoramento desativado por solicitação
+    if (MONITORAMENTO_ATIVO) {
+        if (!document.querySelector('.monitoramento-section')) {
+            criarInterfaceMonitoramento();
+        }
+        atualizarMonitoramento();
     }
-    
-    // Atualizar monitoramento
-    atualizarMonitoramento();
 });
 
 // Função para criar interface de monitoramento
 function criarInterfaceMonitoramento() {
-    const sumarioContainer = document.querySelector('.sumario-container');
+    // Compatível com o HTML atual: usa .sumario-carga; fallback para container principal
+    let sumarioContainer = document.querySelector('.sumario-carga');
+    if (!sumarioContainer) {
+        sumarioContainer = document.querySelector('.container-grande') || document.body;
+    }
     
     // Criar seção de monitoramento
     const monitoramentoSection = document.createElement('div');
@@ -383,11 +389,15 @@ function criarInterfaceMonitoramento() {
         </div>
     `;
     
-    sumarioContainer.appendChild(monitoramentoSection);
+    // Garantir que o container exista antes de anexar
+    if (sumarioContainer && typeof sumarioContainer.appendChild === 'function') {
+        sumarioContainer.appendChild(monitoramentoSection);
+    }
 }
 
 // Função para atualizar monitoramento
 function atualizarMonitoramento() {
+    if (!MONITORAMENTO_ATIVO) return;
     // Atualizar recursos
     document.getElementById('energia-total').textContent = `${gerenciadorModulos.recursos.energia} kWh`;
     document.getElementById('agua-total').textContent = `${gerenciadorModulos.recursos.agua} L`;

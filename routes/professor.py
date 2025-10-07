@@ -5,7 +5,7 @@ import sqlite3
 import logging
 from datetime import datetime
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, Response
 
 from services.db import db_manager
 
@@ -19,6 +19,7 @@ def dashboard():
     ranking = []
     salas = []
     salas_inativas = []
+    estatisticas_salas = []
 
     # Salas ativas
     try:
@@ -93,7 +94,13 @@ def dashboard():
     except Exception:
         logging.exception('Falha ao obter ranking')
 
-    return render_template('professor_dashboard.html', ranking=ranking, salas=salas, salas_inativas=salas_inativas)
+    # Estatísticas agregadas por sala (ativas e inativas)
+    try:
+        estatisticas_salas = db_manager.obter_estatisticas_por_sala()
+    except Exception:
+        estatisticas_salas = []
+
+    return render_template('professor_dashboard.html', ranking=ranking, salas=salas, salas_inativas=salas_inativas, estatisticas_salas=estatisticas_salas)
 
 
 @professor_bp.route('/criar-desafio', methods=['POST'], endpoint='professor_criar_desafio')
@@ -315,6 +322,26 @@ def sala_detalhes(codigo_sala):
             alunos = db_manager.buscar_alunos_por_sala(sala_db['id'])
         except Exception:
             alunos = []
+        # Ranking e métricas por aluno
+        try:
+            ranking = db_manager.obter_ranking_sala(sala_db['id'], limit=500)
+        except Exception:
+            ranking = []
+        stats_map = {r.get('id') or r.get('aluno_id'): r for r in ranking}
+        for aluno in alunos:
+            st = stats_map.get(aluno.get('id'))
+            if st:
+                aluno['tentativas'] = st.get('tentativas') or 0
+                aluno['concluidos'] = st.get('concluidos') or 0
+                aluno['total'] = st.get('total') or 0
+                tent = aluno['tentativas'] or 0
+                concl = aluno['concluidos'] or 0
+                aluno['precisao_pct'] = int(round((concl / tent) * 100)) if tent else 0
+            else:
+                aluno['tentativas'] = 0
+                aluno['concluidos'] = 0
+                aluno['total'] = 0
+                aluno['precisao_pct'] = 0
         # Gerar link de acesso por aluno
         for aluno in alunos:
             base = url_for('aluno.aluno_login', codigo_sala=codigo_sala, _external=True)
@@ -330,6 +357,37 @@ def sala_detalhes(codigo_sala):
         except Exception:
             desafios = []
 
+        # Estatísticas da turma e desempenho por desafio
+        try:
+            desempenho_desafios = db_manager.obter_estatisticas_por_desafio(sala_db['id'])
+        except Exception:
+            desempenho_desafios = []
+        try:
+            tentativas_total = sum((a.get('tentativas') or 0) for a in alunos)
+            concluidos_total = sum((a.get('concluidos') or 0) for a in alunos)
+            total_pontos = sum((a.get('total') or 0) for a in alunos)
+            alunos_total = len(alunos)
+            precisao_geral_pct = int(round((concluidos_total / tentativas_total) * 100)) if tentativas_total else 0
+            media_pontos_aluno = (total_pontos / alunos_total) if alunos_total else 0.0
+            media_pontos_por_tentativa = (total_pontos / tentativas_total) if tentativas_total else 0.0
+            turma_stats = {
+                'alunos_total': alunos_total,
+                'tentativas_total': tentativas_total,
+                'concluidos_total': concluidos_total,
+                'precisao_geral_pct': precisao_geral_pct,
+                'media_pontos_aluno': media_pontos_aluno,
+                'media_pontos_por_tentativa': media_pontos_por_tentativa
+            }
+        except Exception:
+            turma_stats = {
+                'alunos_total': len(alunos),
+                'tentativas_total': 0,
+                'concluidos_total': 0,
+                'precisao_geral_pct': 0,
+                'media_pontos_aluno': 0.0,
+                'media_pontos_por_tentativa': 0.0
+            }
+
         sala_view = {
             'codigo_sala': sala_db.get('codigo_sala'),
             'nome_sala': sala_db.get('nome_sala'),
@@ -338,9 +396,10 @@ def sala_detalhes(codigo_sala):
             'data_criacao': sala_db.get('data_criacao'),
             'ativa': sala_db.get('ativa'),
             'alunos': alunos,
-            'desafios': desafios
+            'desafios': desafios,
+            'desafio_selecionado_index': sala_db.get('desafio_selecionado_index')
         }
-        return render_template('professor_sala_detalhes.html', sala=sala_view, alunos=alunos)
+        return render_template('professor_sala_detalhes.html', sala=sala_view, alunos=alunos, turma_stats=turma_stats, desempenho_desafios=desempenho_desafios)
 
     # Apenas SQLite
     return "Sala não encontrada", 404
@@ -377,3 +436,58 @@ def registrar_desafio():
     except Exception:
         pass
     return redirect(url_for('professor.professor_dashboard'))
+
+
+@professor_bp.route('/sala/excluir', methods=['POST'], endpoint='professor_sala_excluir')
+def sala_excluir():
+    """Exclui definitivamente uma sala (permitido para salas inativas)."""
+    codigo_sala = request.form.get('codigo_sala')
+    if not codigo_sala:
+        return redirect(url_for('professor.professor_dashboard'))
+    try:
+        # Excluir apenas se estiver inativa
+        sala = db_manager.buscar_sala_por_codigo_any(codigo_sala)
+        if sala and (sala.get('ativa') == 0):
+            db_manager.excluir_sala_por_codigo(codigo_sala)
+    except Exception:
+        logging.exception('Falha ao excluir sala')
+    return redirect(url_for('professor.professor_dashboard'))
+
+
+@professor_bp.route('/sala/<codigo_sala>/exportar', endpoint='professor_sala_exportar')
+def sala_exportar(codigo_sala):
+    """Exporta CSV com alunos e respostas da sala."""
+    try:
+        sala = db_manager.buscar_sala_por_codigo_any(codigo_sala)
+        if not sala:
+            return redirect(url_for('professor.professor_dashboard'))
+        # Coletar alunos e respostas
+        with sqlite3.connect(db_manager.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute('SELECT id, nome, email, data_ingresso FROM alunos WHERE sala_id = ? ORDER BY nome ASC', (sala['id'],))
+            alunos = cur.fetchall()
+            cur.execute('''
+                SELECT r.id, r.aluno_id, a.nome, r.desafio_id, r.resposta, r.correta, r.pontuacao, r.data_resposta
+                FROM respostas_desafios r
+                LEFT JOIN alunos a ON a.id = r.aluno_id
+                WHERE r.sala_id = ?
+                ORDER BY r.data_resposta ASC
+            ''', (sala['id'],))
+            respostas = cur.fetchall()
+
+        # Montar CSV
+        lines = []
+        lines.append('tipo,id_aluno,nome,email,desafio_id,resposta,correta,pontuacao,data\n')
+        for a in alunos:
+            lines.append(f"aluno,{a[0]},{a[1]},{a[2] or ''},,,,{a[3]}\n")
+        for r in respostas:
+            correta = '' if r[5] is None else ('1' if r[5] else '0')
+            safe_resp = (r[4] or '').replace('\n', ' ').replace('\r', ' ')
+            lines.append(f"resposta,{r[1]},{r[2]},{''},{r[3]},\"{safe_resp}\",{correta},{r[6] or 0},{r[7]}\n")
+        csv_data = ''.join(lines)
+        return Response(csv_data, mimetype='text/csv', headers={
+            'Content-Disposition': f"attachment; filename=sala_{codigo_sala}.csv"
+        })
+    except Exception:
+        logging.exception('Falha ao exportar CSV da sala')
+        return redirect(url_for('professor.professor_dashboard'))

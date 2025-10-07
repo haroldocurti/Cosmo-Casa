@@ -148,7 +148,7 @@
 .desafio-fields-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
 .desafio-buttons { display: flex; gap: 4px; margin-top: 8px; }
 .is-hidden { display: none; }
-.desafios-title { margin-top: 0; color: var(--accent-color); }
+.desafios-title { margin-top: 0; color:#fff ; }
 
 /* Formulários */
 .form-group {

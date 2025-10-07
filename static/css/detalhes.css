@@ -259,6 +259,118 @@ back-btn:hover {
     margin-bottom: 25px;
 }
 
+/* ---- Regras movidas do template professor_sala_detalhes.html ---- */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background: #000;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 4px solid #64ffda;
+    overflow: hidden;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+}
+.card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+.card-badge {
+    background: rgba(100, 255, 218, 0.2);
+    color: #64ffda;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+.card-content { color: #fff; overflow: hidden; }
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.card-btn {
+    background: rgba(100, 255, 218, 0.1);
+    color: #64ffda;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+    margin-top: 15px;
+    margin-left: 8px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.card-btn:hover { background: rgba(100, 255, 218, 0.2); }
+.card-btn.danger { background: rgba(255, 99, 71, 0.1); color: #ff6b6b; }
+.card-btn.danger:hover { background: rgba(255, 99, 71, 0.2); }
+
+.student-card { position: relative; cursor: pointer; min-height: 160px; transition: box-shadow .2s ease, transform .2s ease; }
+.student-card:focus-visible,
+.student-card:focus-within {
+    box-shadow: 0 0 0 2px rgba(100,255,218,0.8) inset, 0 0 0 2px rgba(100,255,218,0.2);
+}
+.student-summary { color: #ccc; font-size: .9rem; }
+.student-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.student-stat { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; }
+.stat-value { color: #fff; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-label { color: #aaa; font-size: .8rem; display: block; }
+.reveal-on-hover { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .2s ease, opacity .2s ease; will-change: max-height, opacity; }
+.student-card:hover .reveal-on-hover,
+.student-card:focus-within .reveal-on-hover { max-height: 500px; opacity: 1; }
+
+@media (hover: none), (max-width: 768px) {
+  .student-card .reveal-on-hover { max-height: none; opacity: 1; }
+  .student-summary { display: none; }
+}
+@media (max-width: 768px) {
+  .challenge-title { font-size: 1.8rem; }
+  .room-subtitle { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .room-info-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .tabs { flex-wrap: wrap; }
+  .tab { flex: 1 0 auto; min-width: 120px; margin-bottom: 8px; }
+  .student-card { flex-direction: column; }
+  .student-stats { margin: 10px 0; }
+  .student-actions { flex-direction: column; }
+  .action-btn { width: 100%; margin: 4px 0; }
+}
+@media (max-width: 480px) {
+  .room-info-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+/* Inline removidos: auxiliares */
+.list-clean { list-style: none; padding-left: 0; margin: 0; }
+.challenge-desc { margin-top: 6px; color: #ccc; }
+.empty-state { padding: 20px 0; }
+
 .tab {
     padding: 12px 22px;
     background-color: #334155;

@@ -6,145 +6,7 @@
     <title>Detalhes da Sala - CosmoCasa</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/detalhes.css') }}">
-    <style>
-        /* Estilos específicos para responsividade */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .card {
-            background: #000; /* Fundo preto nos cards */
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid #64ffda;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 8px;
-        }
-        
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #fff;
-            margin: 0;
-        }
-        
-        .card-badge {
-            background: rgba(100, 255, 218, 0.2);
-            color: #64ffda;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-        }
-        
-        .card-content {
-            color: #fff; /* Letras brancas */
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 12px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .card-btn {
-            background: rgba(100, 255, 218, 0.1);
-            color: #64ffda;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-            margin-left: 8px;
-        }
-        
-        .card-btn:hover {
-            background: rgba(100, 255, 218, 0.2);
-        }
-        
-        .card-btn.danger {
-            background: rgba(255, 99, 71, 0.1);
-            color: #ff6b6b;
-        }
-        
-        .card-btn.danger:hover {
-            background: rgba(255, 99, 71, 0.2);
-        }
-        
-        /* Responsividade para telas pequenas */
-        @media (max-width: 768px) {
-            .challenge-title {
-                font-size: 1.8rem;
-            }
-            
-            .room-subtitle {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .room-info-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-            
-            .tab {
-                flex: 1 0 auto;
-                min-width: 120px;
-                margin-bottom: 8px;
-            }
-            
-            .student-card {
-                flex-direction: column;
-            }
-            
-            .student-stats {
-                margin: 10px 0;
-            }
-            
-            .student-actions {
-                flex-direction: column;
-            }
-            
-            .action-btn {
-                width: 100%;
-                margin: 4px 0;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .room-info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    
 </head>
 <body class="conteudo-centralizado">
     <div class="main-container">
@@ -155,12 +17,24 @@
         <header class="room-header">
             <div class="room-left">
                 <h1 class="room-title">
-                    {% if sala.desafios %}
-                        {{ sala.desafios[0] }}
+                    {% set idx = sala.desafio_selecionado_index %}
+                    {% if sala.desafios and idx is not none and idx >= 0 and idx < sala.desafios|length %}
+                        {{ sala.desafios[idx]['titulo'] or 'Desafio CosmoCasa' }}
+                    {% elif sala.desafios %}
+                        {{ sala.desafios[0]['titulo'] or 'Desafio CosmoCasa' }}
                     {% else %}
                         Desafio CosmoCasa
                     {% endif %}
                 </h1>
+                {% if sala.desafios %}
+                <p class="challenge-desc">
+                    {% if sala.desafios and idx is not none and idx >= 0 and idx < sala.desafios|length %}
+                        {{ sala.desafios[idx]['descricao'] or '' }}
+                    {% elif sala.desafios %}
+                        {{ sala.desafios[0]['descricao'] or '' }}
+                    {% endif %}
+                </p>
+                {% endif %}
                 <div class="room-subtitle">
                     <span class="room-destination">Destino: {{ sala.destino }}</span>
                     <div class="room-code-section">
@@ -170,9 +44,9 @@
                 </div>
             </div>
             <div class="room-right">
-                <button class="botao" type="button">Editar</button>
-                <button class="botao" type="button">Ver Alunos</button>
-                <button class="botao" type="button">Exportar</button>
+                <button class="botao" type="button" onclick="showTab('desafios')">Editar</button>
+                <button class="botao" type="button" onclick="showTab('alunos')">Ver Alunos</button>
+                <a class="botao" href="{{ url_for('professor.professor_sala_exportar', codigo_sala=sala.codigo_sala) }}">Exportar</a>
             </div>
         </header>
 
@@ -205,35 +79,49 @@
         </header>
         
         <div class="tabs">
-            <button class="botao" onclick="showTab('alunos')">Alunos</button>
-            <button class="botao" onclick="showTab('desafios')">Desafios</button>
-            <button class="botao" onclick="showTab('estatisticas')">Estatísticas</button>
+            <button id="tabbtn-alunos" class="botao active" onclick="showTab('alunos')">Alunos</button>
+            <button id="tabbtn-desafios" class="botao" onclick="showTab('desafios')">Desafios</button>
+            <button id="tabbtn-estatisticas" class="botao" onclick="showTab('estatisticas')">Estatísticas</button>
         </div>
         
         <div id="tab-alunos" class="tab-content active">
             {% if sala.alunos %}
                 <div class="card-grid">
                     {% for aluno in sala.alunos %}
-                        <div class="card student-card">
+                        <div class="card student-card" tabindex="0">
                             <div class="card-header">
-                                <h3 class="card-title">{{ aluno.nome }}</h3>
-                                <span class="card-badge">75% Completo</span>
+                                <h3 class="card-title" title="{{ aluno.nome }}">{{ aluno.nome }}</h3>
+                                <span class="card-badge">{{ aluno.precisao_pct }}% Precisão</span>
                             </div>
                             <div class="card-content">
-                                <div class="student-stats">
-                                    <div class="student-stat">
-                                        <span class="stat-value">5/8</span>
-                                        <span class="stat-label">Desafios</span>
-                                    </div>
-                                    <div class="student-stat">
-                                        <span class="stat-value">85%</span>
-                                        <span class="stat-label">Precisão</span>
-                                    </div>
+                                <!-- Resumo compacto visível por padrão -->
+                                <div class="student-summary">
+                                    Tentativas: <strong>{{ aluno.tentativas }}</strong> —
+                                    Precisão: <strong>{{ aluno.precisao_pct }}%</strong> —
+                                    Pontos: <strong>{{ aluno.total }}</strong>
                                 </div>
-                            </div>
-                            <div class="card-footer">
-                                <button class="card-btn">Ver Progresso</button>
-                                <button class="card-btn">Enviar Mensagem</button>
+                                <!-- Conteúdo extra só aparece no hover -->
+                                <div class="reveal-on-hover">
+            <div class="student-stats">
+                                        <div class="student-stat">
+                                            <span class="stat-value">{{ aluno.tentativas }}</span>
+                                            <span class="stat-label">Tentativas</span>
+                                        </div>
+                                        <div class="student-stat">
+                                            <span class="stat-value">{{ aluno.concluidos }}</span>
+                                            <span class="stat-label">Concluídos</span>
+                                        </div>
+                                        <div class="student-stat">
+                                            <span class="stat-value">{{ aluno.precisao_pct }}%</span>
+                                            <span class="stat-label">Precisão</span>
+                                        </div>
+                                        <div class="student-stat">
+                                            <span class="stat-value">{{ aluno.total }}</span>
+                                            <span class="stat-label">Pontos</span>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -257,7 +145,8 @@
                                 <span class="card-badge">Ativo</span>
                             </div>
                             <div class="card-content">
-                                <p>{{ desafio }}</p>
+                                <p><strong>{{ desafio['titulo'] }}</strong></p>
+                                <p>{{ desafio['descricao'] }}</p>
                             </div>
                             <div class="card-footer">
                                 <button class="card-btn">Editar</button>
@@ -266,17 +155,13 @@
                         </div>
                     {% endfor %}
                 </div>
-                <div class="card-actions" style="margin-top: 20px; text-align: center;">
-                    <button class="card-btn" style="padding: 10px 20px; font-size: 1rem;">
-                        + Adicionar Novo Desafio
-                    </button>
-                </div>
+                
             {% else %}
                 <div class="empty-state">
                     <div class="empty-icon">&#x1F4DD;</div>
                     <h3>Nenhum desafio criado</h3>
                     <p>Crie desafios para engajar seus alunos.</p>
-                    <button class="card-btn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem;">
+            <button class="card-btn">
                         + Criar Primeiro Desafio
                     </button>
                 </div>
@@ -290,10 +175,31 @@
                         <h3 class="card-title">Progresso da Turma</h3>
                     </div>
                     <div class="card-content">
-                        <div class="empty-state" style="padding: 20px 0;">
-                            <div class="empty-icon">&#x1F4CA;</div>
-                            <h3>Estatísticas em Breve</h3>
-                            <p>Gráficos detalhados sobre o desempenho da turma estarão disponíveis aqui.</p>
+                        <div class="student-stats">
+                            <div class="student-stat">
+                                <span class="stat-value">{{ turma_stats.alunos_total }}</span>
+                                <span class="stat-label">Alunos</span>
+                            </div>
+                            <div class="student-stat">
+                                <span class="stat-value">{{ turma_stats.tentativas_total }}</span>
+                                <span class="stat-label">Tentativas</span>
+                            </div>
+                            <div class="student-stat">
+                                <span class="stat-value">{{ turma_stats.concluidos_total }}</span>
+                                <span class="stat-label">Concluídos</span>
+                            </div>
+                            <div class="student-stat">
+                                <span class="stat-value">{{ turma_stats.precisao_geral_pct }}%</span>
+                                <span class="stat-label">Precisão média</span>
+                            </div>
+                            <div class="student-stat">
+                                <span class="stat-value">{{ '%.1f'|format(turma_stats.media_pontos_aluno) }}</span>
+                                <span class="stat-label">Média pontos/aluno</span>
+                            </div>
+                            <div class="student-stat">
+                                <span class="stat-value">{{ '%.2f'|format(turma_stats.media_pontos_por_tentativa) }}</span>
+                                <span class="stat-label">Pontos por tentativa</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,11 +209,24 @@
                         <h3 class="card-title">Desempenho por Desafio</h3>
                     </div>
                     <div class="card-content">
-                        <div class="empty-state" style="padding: 20px 0;">
-                            <div class="empty-icon">&#x1F4C8;</div>
-                            <h3>Dados Insuficientes</h3>
-                            <p>As estatísticas serão exibidas quando houver mais atividade.</p>
-                        </div>
+                        {% if desempenho_desafios and desempenho_desafios|length > 0 %}
+            <ul class="list-clean">
+                                {% for d in desempenho_desafios %}
+                                    <li style="margin-bottom: 8px;">
+                                        <strong>{{ d.desafio_id }}</strong> — 
+                                        {{ d.tentativas }} tentativas, 
+                                        {{ d.precisao_pct }}% precisão, 
+                                        média {{ '%.1f'|format(d.media_pontuacao) }} pontos
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+            <div class="empty-state">
+                                <div class="empty-icon">&#x1F4C8;</div>
+                                <h3>Dados Insuficientes</h3>
+                                <p>As estatísticas serão exibidas quando houver mais atividade.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -317,10 +236,12 @@
     <script>
         function showTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            
             document.getElementById('tab-' + tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
+            // Atualizar estado ativo dos botões principais de aba
+            document.querySelectorAll('.tabs .botao').forEach(btn => btn.classList.remove('active'));
+            const map = { alunos: 'tabbtn-alunos', desafios: 'tabbtn-desafios', estatisticas: 'tabbtn-estatisticas' };
+            const btn = document.getElementById(map[tabName]);
+            if (btn) btn.classList.add('active');
         }
         
         function copiarCodigo() {
@@ -331,6 +252,39 @@
                 alert('Erro ao copiar o código.');
             });
         }
+
+        function copiarLinkAluno(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copiado: ' + url);
+            }).catch(err => {
+                alert('Erro ao copiar link: ' + err);
+            });
+        }
+
+        // Auto-scroll: ao abrir/focar um card, desce a tela para mostrar seu conteúdo
+        document.addEventListener('DOMContentLoaded', () => {
+            const scrollIfHidden = (card) => {
+                if (!card) return;
+                // Aguarda a aplicação das classes de hover/foco
+                setTimeout(() => {
+                    const rect = card.getBoundingClientRect();
+                    const overflowBottom = rect.bottom - window.innerHeight;
+                    // Se o fundo do card ficar fora da viewport, desloca suavemente
+                    if (overflowBottom > -8) {
+                        window.scrollBy({ top: overflowBottom + 24, behavior: 'smooth' });
+                    } else if (rect.top < 0) {
+                        // Se o topo estiver acima, ajusta para cima
+                        window.scrollBy({ top: rect.top - 24, behavior: 'smooth' });
+                    }
+                }, 60);
+            };
+            document.querySelectorAll('.student-card').forEach((card) => {
+                card.addEventListener('mouseenter', () => scrollIfHidden(card), { passive: true });
+                card.addEventListener('focusin', () => scrollIfHidden(card), { passive: true });
+                card.addEventListener('click', () => scrollIfHidden(card), { passive: true });
+                card.addEventListener('touchstart', () => scrollIfHidden(card), { passive: true });
+            });
+        });
     </script>
 </body>
 </html>
