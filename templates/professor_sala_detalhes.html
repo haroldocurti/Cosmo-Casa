@@ -60,7 +60,7 @@
             <div class="room-right">
                 <button class="botao" type="button" onclick="showTab('desafios')">Editar</button>
                 <button class="botao" type="button" onclick="showTab('alunos')">Ver Alunos</button>
-                <a class="botao" href="{{ url_for('professor.professor_sala_exportar', codigo_sala=sala.codigo_sala) }}">Exportar</a>
+                <a class="botao" href="{{ url_for('professor.professor_sala_exportar', codigo_sala=sala.codigo_sala) }}" target="_blank" rel="noopener">Exportar</a>
             </div>
         </header>
 
@@ -163,8 +163,13 @@
                                 <p>{{ desafio['descricao'] }}</p>
                             </div>
                             <div class="card-footer">
-                                <button class="card-btn">Editar</button>
-                                <button class="card-btn danger">Remover</button>
+                                <form method="post" action="{{ url_for('professor.professor_excluir_desafio') }}" style="display:inline">
+                                    <input type="hidden" name="codigo_sala" value="{{ sala.codigo_sala }}" />
+                                    <input type="hidden" name="desafio_index" value="{{ loop.index0 }}" />
+                                    <button type="submit" class="card-btn danger">Remover</button>
+                                </form>
+                                <!-- Placeholder de edição: manter botão visível -->
+                                <button class="card-btn" type="button" onclick="alert('Edição ainda não implementada nesta tela.')">Editar</button>
                             </div>
                         </div>
                     {% endfor %}
