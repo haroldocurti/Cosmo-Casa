@@ -427,3 +427,4 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', '5000'))
     debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
     app.run(host=host, port=port, debug=debug)
+# --- CONTROLE DE CACHE PARA EVITAR BFCACHE (reforça bloqueio do Voltar) ---

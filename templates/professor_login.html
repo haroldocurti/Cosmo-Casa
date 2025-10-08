@@ -23,7 +23,7 @@
             {% endif %}
             <form method="post" action="{{ url_for('professor.professor_login', next=request.args.get('next')) }}">
                 <div class="form-row">
-                    <label for="usuario">Usuário (opcional)</label>
+                    <label for="usuario">Usuário</label>
                     <input type="text" id="usuario" name="usuario" placeholder="Seu nome">
                 </div>
                 <div class="form-row">

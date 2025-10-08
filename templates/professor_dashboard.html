@@ -12,12 +12,17 @@
     <header class="brand-header">
         <img class="brand-logo" src="{{ url_for('static', filename='imagens/Group 3.png') }}" alt="Cosmo Casa logo">
     </header>
-    <div class="topbar">
-        <div class="user">Bem-vindo, {{ professor_nome or 'Professor' }}</div>
+    <!-- Barra separada para ações no canto superior direito -->
+    <div class="topbar-actions-row">
         <div class="topbar-actions">
             <a href="{{ url_for('professor.professor_reset_password', next=request.path) }}" class="action-btn">Trocar senha</a>
             <a href="{{ url_for('professor.professor_logout') }}" class="action-btn danger">Sair</a>
         </div>
+    </div>
+
+    <!-- Barra de boas-vindas isolada -->
+    <div class="topbar">
+        <div class="user">Bem-vindo, {{ professor_nome or 'Professor' }}</div>
     </div>
     
     <main class="dashboard-container">
@@ -114,7 +119,7 @@
                 </div>
                 
                 <div class="sala-actions">
-                    <a href="{{ url_for('professor.professor_sala_detalhes', codigo_sala=sala.codigo) }}" class="action-btn">
+                    <a href="{{ url_for('professor.professor_sala_detalhes', codigo_sala=sala.codigo) }}" class="action-btn info">
                         👁️ Ver detalhes
                     </a>
                     <a href="{{ url_for('tela_selecao', codigo_sala=sala.codigo) }}" class="action-btn success">
@@ -213,7 +218,31 @@
                 alert('Erro ao copiar código: ' + err);
             });
         }
+
+        // Toggle de desafios dentro de cada sala-card
+        document.addEventListener('DOMContentLoaded', function() {
+            // Suporte a botões dedicados (se existirem) com classe .toggle-desafios
+            document.querySelectorAll('.toggle-desafios').forEach(button => {
+                button.addEventListener('click', function(evt) {
+                    evt.preventDefault();
+                    const salaCard = this.closest('.sala-card');
+                    if (salaCard) {
+                        salaCard.classList.toggle('is-open');
+                    }
+                });
+            });
+
+            // Permitir colapsar/expandir ao clicar no título dos desafios
+            document.querySelectorAll('.desafios-title').forEach(title => {
+                title.addEventListener('click', function() {
+                    const salaCard = this.closest('.sala-card');
+                    if (salaCard) {
+                        salaCard.classList.toggle('is-open');
+                    }
+                });
+            });
+        });
     </script>
-    <script src="{{ url_for('static', filename='js/ws.js') }}"></script>
+    
 </body>
 </html>

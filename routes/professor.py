@@ -53,6 +53,24 @@ def _require_professor_role():
     return Response("Acesso negado: professor requerido.", status=403)
 
 
+# --- Evitar cache nas páginas protegidas do professor ---
+@professor_bp.after_request
+def _professor_no_cache(response):
+    """Força revalidação e evita bfcache nas páginas HTML do professor.
+
+    Garante que, após logout, o botão Voltar não exiba versões em cache
+    de páginas protegidas como dashboard e detalhes de sala.
+    """
+    try:
+        if response.mimetype == 'text/html':
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+    except Exception:
+        pass
+    return response
+
+
 @professor_bp.route('/login', methods=['GET', 'POST'], endpoint='professor_login')
 def login():
     """Login simples de professor usando senha de ambiente.
@@ -89,26 +107,29 @@ def login():
     if request.method == 'POST':
         usuario = (request.form.get('usuario') or '').strip()
         senha = request.form.get('senha') or ''
-        # Autenticar via tabela admins (por enquanto, apenas usuário 'admin')
-        try:
-            with sqlite3.connect(db_manager.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute('SELECT id, username, password_hash, must_change FROM admins WHERE username = ?', ('admin',))
-                row = cursor.fetchone()
-                if row and check_password_hash(row[2], senha):
-                    session['user_role'] = 'admin'
-                    session['professor_id'] = row[0]
-                    session['professor_nome'] = usuario or row[1]
-                    # Se precisa trocar senha, direciona para reset
-                    if (row[3] or 0) == 1:
-                        return redirect(url_for('professor.professor_reset_password', next=request.args.get('next')))
-                    destino = request.args.get('next') or url_for('professor.professor_dashboard')
-                    return redirect(destino)
-                else:
-                    erro = 'Credenciais inválidas. Tente novamente.'
-        except Exception:
-            logging.exception('Falha na autenticação do admin')
-            erro = 'Erro ao autenticar. Tente novamente.'
+        if not usuario:
+            erro = 'Informe o usuário.'
+        else:
+            # Autenticar via tabela admins (por enquanto, apenas usuário 'admin')
+            try:
+                with sqlite3.connect(db_manager.db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT id, username, password_hash, must_change FROM admins WHERE username = ?', (usuario,))
+                    row = cursor.fetchone()
+                    if row and check_password_hash(row[2], senha):
+                        session['user_role'] = 'admin'
+                        session['professor_id'] = row[0]
+                        session['professor_nome'] = row[1]
+                        # Se precisa trocar senha, direciona para reset
+                        if (row[3] or 0) == 1:
+                            return redirect(url_for('professor.professor_reset_password', next=request.args.get('next')))
+                        destino = request.args.get('next') or url_for('professor.professor_dashboard')
+                        return redirect(destino)
+                    else:
+                        erro = 'Usuário ou senha inválidos. Tente novamente.'
+            except Exception:
+                logging.exception('Falha na autenticação do admin')
+                erro = 'Erro ao autenticar. Tente novamente.'
     return render_template('professor_login.html', erro=erro)
 
 

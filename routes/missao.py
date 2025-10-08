@@ -15,6 +15,7 @@ import random
 import json
 import logging
 import os
+import sqlite3
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory, current_app
 
 from services.db import db_manager
@@ -22,6 +23,65 @@ from services.data import NAVES_ESPACIAIS, MODULOS_HABITAT, EVENTOS_ALEATORIOS
 
 
 missao_bp = Blueprint('missao', __name__)
+
+
+# --- Controle de fluxo e cache para páginas do aluno (missão) ---
+@missao_bp.before_request
+def _require_aluno_session():
+    """Exige sessão de aluno para acessar páginas da missão.
+
+    Permite acesso livre a páginas públicas como ranking e game over.
+    Evita que o usuário volte a páginas da missão após sair (sem sessão).
+    """
+    try:
+        # Endpoints públicos do blueprint
+        public_endpoints = {'missao.ranking_rodada', 'missao.game_over'}
+        ep = request.endpoint
+        if ep in public_endpoints:
+            return None
+
+        # Permitir acesso para professor/admin sem exigir sessão de aluno
+        try:
+            is_prof = (session.get('user_role') in {'professor', 'admin'}) or bool(session.get('professor_id'))
+        except Exception:
+            is_prof = False
+        if is_prof:
+            return None
+
+        # Sessão obrigatória nas páginas da missão para alunos
+        if not session.get('aluno_id'):
+            return redirect(url_for('index'))
+
+        # Controle de fluxo por etapa (apenas para alunos): impedir volta a páginas anteriores
+        etapa = session.get('missao_etapa')
+        if etapa == 'viagem' and ep in {'missao.montagem_transporte', 'missao.selecao_modulos'}:
+            destino = session.get('viagem_destino') or session.get('missao_destino')
+            nave_id = session.get('viagem_nave_id') or session.get('missao_nave')
+            if destino and nave_id:
+                return redirect(url_for('missao.viagem_get', destino=destino, nave_id=nave_id))
+            return redirect(url_for('missao.ranking_rodada'))
+        if etapa == 'selecao' and ep == 'missao.montagem_transporte':
+            return redirect(url_for('missao.retry_modulos'))
+        return None
+    except Exception:
+        # Em erro, preserve segurança exigindo retorno à index
+        return redirect(url_for('index'))
+
+
+@missao_bp.after_request
+def _missao_no_cache(response):
+    """Evita cache/bfcache nas páginas HTML da missão.
+
+    Garante revalidação pelo navegador ao pressionar Voltar/Avançar.
+    """
+    try:
+        if response.mimetype == 'text/html':
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+    except Exception:
+        pass
+    return response
 
 
 @missao_bp.route('/montagem-transporte/<string:destino>')
@@ -32,6 +92,10 @@ def montagem_transporte(destino):
         destino_norm = (destino or '').lower()
         if destino_norm not in {'lua', 'marte', 'exoplaneta'}:
             return redirect(url_for('tela_selecao', codigo_sala=request.args.get('codigo_sala')))
+        try:
+            session['missao_etapa'] = 'montagem'
+        except Exception:
+            pass
         return render_template('montagem_transporte.html', naves=NAVES_ESPACIAIS, destino=destino, codigo_sala=request.args.get('codigo_sala'))
     except Exception:
         logging.exception("Falha ao renderizar montagem_transporte")
@@ -57,6 +121,12 @@ def selecao_modulos(destino, nave_id):
         nave_selecionada = NAVES_ESPACIAIS.get(nave_key)
         if not nave_selecionada:
             return "Nave não encontrada!", 404
+        try:
+            session['missao_etapa'] = 'selecao'
+            session['missao_destino'] = destino
+            session['missao_nave'] = nave_key
+        except Exception:
+            pass
         return render_template('selecao_modulos.html', destino=destino, nave=nave_selecionada, nave_id=nave_key, modulos=MODULOS_HABITAT, codigo_sala=request.args.get('codigo_sala'))
     except Exception:
         logging.exception("Falha ao renderizar selecao_modulos")
@@ -316,6 +386,29 @@ def viagem(destino, nave_id):
         try:
             aluno_id = session.get('aluno_id')
             sala_id = session.get('sala_id')
+            # Fallback robusto: tentar resolver aluno/sala por nome e código se ausentes
+            if not (aluno_id and sala_id):
+                try:
+                    codigo_sala_req = request.args.get('codigo_sala') or request.form.get('codigo_sala')
+                    nome_aluno = session.get('nome_aluno')
+                    # Resolver sala_id pelo código, se disponível
+                    if not sala_id and codigo_sala_req:
+                        sala = db_manager.buscar_sala_por_codigo_any(codigo_sala_req)
+                        if sala:
+                            sala_id = sala.get('id')
+                            session['sala_id'] = sala_id
+                    # Resolver aluno_id pelo nome dentro da sala
+                    if not aluno_id and sala_id and nome_aluno:
+                        with sqlite3.connect(db_manager.db_path) as conn:
+                            cursor = conn.cursor()
+                            cursor.execute('SELECT id FROM alunos WHERE sala_id = ? AND nome = ?', (sala_id, nome_aluno))
+                            row = cursor.fetchone()
+                            if row:
+                                aluno_id = row[0]
+                                session['aluno_id'] = aluno_id
+                except Exception:
+                    logging.exception('Fallback para obter aluno/sala ao registrar pontuação falhou')
+
             if aluno_id and sala_id:
                 detalhes = {
                     'destino': destino,
@@ -326,12 +419,27 @@ def viagem(destino, nave_id):
                     'aviso': 'pontuação de missão'
                 }
                 db_manager.registrar_resposta_desafio(
-                    aluno_id, sala_id, 'missao_score', json.dumps(detalhes, ensure_ascii=False), None, int(pontuacao)
+                    aluno_id, sala_id, 'missao_score', json.dumps(detalhes, ensure_ascii=False), 1, int(pontuacao)
                 )
         except Exception:
             logging.exception('Falha ao registrar pontuação da missão no ranking')
 
-        return render_template('viagem.html', diario=diario_de_bordo, destino=destino, nave=nave, modulos=modulos_a_bordo, chegada_ok=chegada_ok, pontuacao=pontuacao)
+        # PRG: salvar resultados e redirecionar para GET
+        try:
+            session['viagem_diario'] = diario_de_bordo
+            session['viagem_destino'] = destino
+            session['viagem_nave_id'] = nave_key
+            session['viagem_nave'] = nave
+            session['viagem_modulos'] = modulos_a_bordo
+            session['viagem_chegada_ok'] = chegada_ok
+            session['viagem_pontuacao'] = pontuacao
+            session['missao_etapa'] = 'viagem'
+        except Exception:
+            logging.exception('Falha ao salvar dados da viagem na sessão')
+        codigo_sala = request.args.get('codigo_sala') or request.form.get('codigo_sala')
+        if codigo_sala:
+            return redirect(url_for('missao.viagem_get', destino=destino, nave_id=nave_key, codigo_sala=codigo_sala))
+        return redirect(url_for('missao.viagem_get', destino=destino, nave_id=nave_key))
     except Exception:
         logging.exception("Falha ao processar viagem")
         return "Erro ao processar a viagem", 500
@@ -389,6 +497,19 @@ def habitat_finalizar():
     try:
         aluno_id = session.get('aluno_id')
         sala_id = session.get('sala_id')
+        # Fallback: se aluno_id estiver ausente, tentar resolver pelo nome na mesma sala
+        if not aluno_id and sala_id:
+            try:
+                nome_aluno = session.get('nome_aluno')
+                if nome_aluno:
+                    with sqlite3.connect(db_manager.db_path) as conn:
+                        cursor = conn.cursor()
+                        cursor.execute('SELECT id FROM alunos WHERE sala_id = ? AND nome = ?', (sala_id, nome_aluno))
+                        row = cursor.fetchone()
+                        if row:
+                            aluno_id = row[0]
+            except Exception:
+                logging.exception('Fallback de aluno_id por nome/sala falhou')
         itens = session.get('modulos_selecionados') or []
         # Análise de sobrevivência com base nos itens selecionados
         essenciais_por_destino = {
@@ -416,7 +537,7 @@ def habitat_finalizar():
         if aluno_id and sala_id:
             try:
                 db_manager.registrar_resposta_desafio(
-                    aluno_id, sala_id, 'habitat_finalizado', json.dumps(detalhes, ensure_ascii=False), None, int(session.get('missao_score') or 0)
+                    aluno_id, sala_id, 'habitat_finalizado', json.dumps(detalhes, ensure_ascii=False), 1, int(session.get('missao_score') or 0)
                 )
             except Exception:
                 logging.exception('Falha ao registrar finalização de habitat no ranking')
@@ -521,3 +642,19 @@ def ranking_rodada():
     except Exception:
         logging.exception('Falha ao renderizar ranking da rodada')
         return "Erro ao renderizar ranking", 500
+@missao_bp.route('/viagem/<string:destino>/<string:nave_id>', methods=['GET'], endpoint='viagem_get')
+def viagem_get(destino, nave_id):
+    """Exibe resultados da viagem via GET (PRG)."""
+    try:
+        diario = session.get('viagem_diario')
+        destino_sess = session.get('viagem_destino') or destino
+        nave = session.get('viagem_nave')
+        modulos = session.get('viagem_modulos')
+        chegada_ok = session.get('viagem_chegada_ok')
+        pontuacao = session.get('viagem_pontuacao')
+        if not diario or not modulos:
+            return redirect(url_for('missao.retry_modulos'))
+        return render_template('viagem.html', diario=diario, destino=destino_sess, nave=nave, modulos=modulos, chegada_ok=chegada_ok, pontuacao=pontuacao)
+    except Exception:
+        logging.exception('Falha ao exibir viagem (GET)')
+        return "Erro ao exibir a viagem", 500

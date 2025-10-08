@@ -164,6 +164,35 @@ body.conteudo-centralizado .container-grande {
     transform: scale(1.1);
 }
 
+/* Chamada empolgante na home */
+.cta-line {
+    font-family: 'Gotham Book', Arial, sans-serif;
+    font-size: clamp(1rem, 2.6vw, 1.25rem);
+    text-align: center;
+    color: #fff;
+    margin: 12px 0 0;
+    letter-spacing: 0.2px;
+}
+
+.cta-line strong {
+    color: #7FB500;
+    background: rgba(127, 181, 0, 0.12);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.cta-rocket {
+    display: inline-block;
+    margin-right: 8px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+    animation: float 2.8s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
 /* --- Cabeçalho da marca na Seleção --- */
 .brand-header {
     display: flex;
@@ -806,7 +835,7 @@ body.conteudo-centralizado.selecao-modulos::before {
 .naves-nowrap {
     flex-wrap: nowrap;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
 }
 
 /* ===== Correções de posicionamento: aproximar módulos do topo da seção ===== */
@@ -966,12 +995,62 @@ body.conteudo-centralizado.selecao-modulos::before {
 .alerta { padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107; }
 
 /* ===== Topbar (Professor) ===== */
-.topbar { display:flex; justify-content:space-between; align-items:center; padding:8px 16px; ; border-bottom:1px solid rgba(255,255,255,0.08); border-radius: 8px; }
-.topbar .user { color:#fff; font-weight:600; font-family: 'korataki'; }
-.topbar-actions { display:flex; gap:8px; align-items:center; }
+.topbar { display:flex; justify-content:flex-start; align-items:center; padding:8px 16px; border-bottom:1px solid rgba(255,255,255,0.08); border-radius: 8px; }
+.topbar .user { color:#fff; font-weight:600; font-family: inherit; }
+.topbar-actions { display:flex; gap:8px; align-items:center; margin-left: auto; }
 .topbar .action-btn { padding: 8px 8px ; background: #7FB500; color: #fff; border: 1px solid ; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; text-decoration: none; }
 .topbar .action-btn:hover { background: #fff; color: #7FB500 ; transform: translateY(-1px); }
 .topbar .action-btn.danger { background: rgba(255, 99, 71, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
+
+/* Barra separada para ações (topo direito) */
+.topbar-actions-row { 
+  position: fixed; 
+  top: 8px; 
+  right: 16px; 
+  z-index: 1000; 
+  display:flex; 
+  justify-content:flex-end; 
+  align-items:center; 
+  padding: 0; 
+}
+.topbar-actions-row .topbar-actions { display:flex; gap:6px; align-items:center; flex-wrap: wrap; }
+/* Botões menores e com fonte do corpo (mesma dos parágrafos) */
+.topbar-actions-row .action-btn { 
+  padding: 6px 10px; 
+  font-size: 0.8rem; 
+  font-family: inherit; /* herda do body/p */
+  text-transform: none; 
+  font-weight: 600; 
+  background: #7FB500; 
+  color: #fff; 
+  border: 1px solid; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  transition: background-color 0.2s, transform 0.1s; 
+  text-decoration: none; 
+}
+.topbar-actions-row .action-btn:hover { background: #fff; color: #7FB500 ; transform: translateY(-1px); }
+.topbar-actions-row .action-btn.danger { background: rgba(255, 99, 71, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
+
+@media (max-width: 480px) {
+  .topbar-actions-row { top: 6px; right: 10px; }
+  .topbar-actions-row .action-btn { padding: 5px 8px; font-size: 0.75rem; }
+}
+
+/* Korataki apenas para títulos do dashboard */
+.dashboard-container h1,
+.dashboard-container h2,
+.dashboard-container h3,
+.dashboard-container h4,
+.dashboard-container h5,
+.dashboard-container h6,
+.dashboard-container .card-title,
+.dashboard-container .sala-title,
+.dashboard-container .desafios-title,
+.dashboard-container .empty-text {
+  font-family: 'Korataki';
+  letter-spacing: 0.3px;
+}
 
 /* Banner de alerta reutilizável */
 .alert-banner { margin:12px 0; padding:10px; border:1px solid #b58900; background:rgba(181,137,0,0.18); color:#ffd27f; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; }

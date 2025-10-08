@@ -19,6 +19,49 @@ from services.db import db_manager
 aluno_bp = Blueprint('aluno', __name__)
 
 
+# Impedir voltar às páginas de login/entrada quando já autenticado como aluno
+@aluno_bp.before_request
+def _aluno_block_back_to_login():
+    """Controla acesso às páginas de login/entrada quando já autenticado.
+
+    Objetivo: permitir que o botão "Iniciar Missão" abra `aluno_entrar.html`
+    mesmo quando o aluno já tem sessão, porém impedir reenvio de formulário.
+
+    Regras:
+    - Bloqueia qualquer acesso (GET/POST) a `aluno_login` quando autenticado.
+    - Permite GET em `aluno_entrar` mesmo autenticado (renderiza a página).
+    - Bloqueia POST em `aluno_entrar` quando autenticado (evita re-login).
+    """
+    try:
+        ep = request.endpoint
+        if session.get('aluno_id'):
+            # Nunca voltar para a rota de login se já autenticado
+            if ep == 'aluno.aluno_login':
+                return redirect(url_for('missao.retry_modulos'))
+            # Permite visualizar a página de entrar, mas bloqueia reenvio de POST
+            if ep == 'aluno.aluno_entrar' and request.method == 'POST':
+                return redirect(url_for('missao.retry_modulos'))
+    except Exception:
+        pass
+    return None
+
+
+@aluno_bp.after_request
+def _aluno_no_cache_login_pages(response):
+    """Evita cache do navegador nas páginas de login/entrada do aluno.
+
+    Isso previne que o botão Voltar exiba o formulário a partir do cache.
+    """
+    try:
+        if request.endpoint in {'aluno.aluno_login', 'aluno.aluno_entrar', 'aluno.modulo_underscore_espaco'}:
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+    except Exception:
+        pass
+    return response
+
+
 @aluno_bp.route('/aluno/login/<codigo_sala>', methods=['GET', 'POST'])
 def aluno_login(codigo_sala):
     """Login do aluno: valida se nome corresponde exatamente à lista.
@@ -53,6 +96,7 @@ def aluno_login(codigo_sala):
                     if row:
                         session['aluno_id'] = row[0]
                         session['nome_aluno'] = row[1]
+                        session['sala_id'] = sala['id']
                         logging.info(f"Login bem-sucedido para aluno {row[1]} na sala {codigo_sala}")
                         return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                     else:
@@ -146,13 +190,13 @@ def api_registrar_resposta():
     """
     try:
         data = request.get_json()
-        aluno_id = data.get('aluno_id')
-        sala_id = data.get('sala_id')
-        desafio_id = data.get('desafio_id')
+        aluno_id = data.get('aluno_id') or session.get('aluno_id')
+        sala_id = data.get('sala_id') or session.get('sala_id')
+        desafio_id = data.get('desafio_id') or 'resposta_desafio'
         resposta = data.get('resposta')
 
-        correta = True
-        pontuacao = 10
+        correta = 1  # contar como concluído
+        pontuacao = int(data.get('pontuacao') or 10)
 
         db_manager.registrar_resposta_desafio(
             aluno_id, sala_id, desafio_id, resposta, correta, pontuacao
