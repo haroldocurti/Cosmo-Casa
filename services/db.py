@@ -410,7 +410,7 @@ class DatabaseManager:
                 "COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS concluidos "
                 "FROM alunos a "
                 "JOIN salas_virtuais s ON s.id = a.sala_id AND s.ativa = 1 "
-                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id "
+                "LEFT JOIN respostas_desafios r ON r.aluno_id = a.id AND r.sala_id = a.sala_id "
                 "WHERE 1 = 1 "
             )
             if exclude_col:

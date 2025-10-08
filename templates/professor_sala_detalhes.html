@@ -217,30 +217,26 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Desempenho por Desafio</h3>
                     </div>
                     <div class="card-content">
-                        {% if desempenho_desafios and desempenho_desafios|length > 0 %}
-            <ul class="list-clean">
+                        <ul class="list-clean">
+                            {% if desempenho_desafios %}
                                 {% for d in desempenho_desafios %}
                                     <li style="margin-bottom: 8px;">
                                         <strong>{{ d.desafio_id }}</strong> — 
                                         {{ d.tentativas }} tentativas, 
                                         {{ d.precisao_pct }}% precisão, 
-                                        média {{ '%.1f'|format(d.media_pontuacao) }} pontos
+                                        média {{ '%.1f'|format(d.media_pontuacao) }} pontos 
                                     </li>
                                 {% endfor %}
-                            </ul>
-                        {% else %}
-            <div class="empty-state">
-                                <div class="empty-icon">&#x1F4C8;</div>
-                                <h3>Dados Insuficientes</h3>
-                                <p>As estatísticas serão exibidas quando houver mais atividade.</p>
-                            </div>
-                        {% endif %}
+                            {% else %}
+                                <li>Nenhum registro de desempenho de desafios.</li>
+                            {% endif %}
+                        </ul>
                     </div>
                 </div>
             </div>

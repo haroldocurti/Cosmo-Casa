@@ -9,11 +9,17 @@
     --accent-dark: rgba(100, 255, 218, 0.1);
     --danger-color: #ff6b6b;
     --danger-light: rgba(255, 99, 71, 0.2);
-    --info-color: #4169e1;
-    --info-light: rgba(65, 105, 225, 0.1);
     --text-color: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.7);
     --border-color: rgba(255, 255, 255, 0.1);
+    /* Paleta alinhada à identidade com verde 7FB500 */
+    --primary-green: #7FB500;
+    --primary-green-light: rgba(127, 181, 0, 0.2);
+    --primary-green-dark: rgba(127, 181, 0, 0.4);
+    /* Neutro para botões informativos */
+    --info-color: #555555;
+    --info-light: rgba(85, 85, 85, 0.20);
+    --info-dark: rgba(85, 85, 85, 0.40);
 }
 
 /* Estilos gerais */
@@ -62,6 +68,18 @@
     align-items: start;
 }
 
+/* ===== Botões fixos no canto superior direito (Dashboard) ===== */
+.topbar-actions-row {
+  position: fixed;
+  top: 8px;
+  right: 16px;
+  z-index: 1000; /* acima do conteúdo para não rolar junto */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.topbar-actions-row .topbar-actions { display: flex; gap: 6px; align-items: center; }
+
 
 .salas-column { margin-top: clamp(20px, 4vh, 40px)  ; }
 
@@ -74,14 +92,23 @@
 
 /* ===== Seção Minhas Salas (Direita) ===== */
 .salas-container { display: grid; gap: 20px; justify-items: center; align-content: start; margin-left: auto; }
-.sala-card { display: grid; grid-template-columns: 1fr; row-gap: 16px; background: #000; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); color: #fff; width: min(100%, 560px); }
+.sala-card { display: grid; grid-template-columns: 1fr; row-gap: 16px; background: #000; border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); color: #fff; width: min(100%, 560px); transition: box-shadow 0.2s ease; }
+.sala-card:hover { box-shadow: 0 6px 25px rgba(0,0,0,0.4); }
 .sala-card > * { margin: 0; }
-.sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
 .sala-title { font-size: 1.2rem; color: #fff; margin: 0; }
 .sala-code { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; background: #000; padding: 6px 12px; border-radius: 6px; border: 1px solid #333; color: #fff; }
+.sala-code .action-btn { background: transparent; border: none; color: var(--text-secondary); }
 .sala-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; color: #fff; }
 .sala-info-item { background: #000; padding: 8px; border-radius: 6px; border: 1px solid #333; color: #fff; }
-.sala-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+/* 1. CONTAINER DE AÇÕES (BOTÕES) - FLEXBOX RESPONSIVO */
+.sala-actions {
+  display: flex;
+  flex-direction: column; /* Empilha os botões em telas pequenas */
+  gap: 12px;
+  margin-top: 16px;
+}
+/* regras acima mantêm comportamento original em telas não móveis */
 .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 6px; margin-bottom: 8px; background: #000; border: 1px solid #333; color: #fff; }
 .empty-state { text-align: center; padding: 40px 20px; background: #000; border-radius: 12px; margin: 30px 0; color: #fff; }
 .section-title { display: flex; align-items: center; margin: 30px 0 20px; color: #fff; font-size: 1.5rem; }
@@ -97,45 +124,105 @@
 @media (max-width: 768px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .sala-actions { flex-direction: column; }
-  .action-btn { width: 100%; }
+  /* garantir quebra do código da sala somente no mobile */
+  .sala-code span { white-space: normal; overflow-wrap: anywhere; }
 }
 
 /* Botões e ações */
+/* 2. BOTÃO BASE - INSPIRADO NO .botao */
 .action-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    background: rgba(65, 105, 225, 0.2);
-    color: var(--text-color);
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  display: flex; /* Para alinhar ícone e texto */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: 2px solid transparent; /* Bordas para o estilo "outline" */
+  color: var(--text-color);
+  font-family: 'Korataki', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  background-color: var(--info-light);
 }
 
 .action-btn:hover {
-    background: rgba(65, 105, 225, 0.4);
+  background-color: var(--info-dark);
+  transform: translateY(-1px);
+}
+
+/* 3. ESTILOS E CORES PARA CADA BOTÃO */
+.action-btn.success {
+  background-color: var(--primary-green); /* #7FB500 */
+  color: #121212; /* Texto escuro para alto contraste */
+  border-color: var(--primary-green);
+}
+.action-btn.success:hover {
+  background-color: #fff; /* Efeito invertido no hover */
+  color: var(--primary-green);
 }
 
 .action-btn.danger {
-    background: var(--danger-light);
-    color: var(--danger-color);
+  background-color: #E63946; /* Vermelho forte */
+  color: #fff;
+  border-color: #E63946;
 }
-
 .action-btn.danger:hover {
-    background: rgba(255, 99, 71, 0.4);
+  background-color: #fff;
+  color: #E63946;
 }
 
-.action-btn.success {
-    background: var(--accent-light);
-    color: var(--accent-color);
+/* Estilo INFO (Ver detalhes) - Outline sutil */
+.action-btn.info {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-color: #555;
+}
+.action-btn.info:hover {
+  background-color: #555;
+  color: #fff;
 }
 
-.action-btn.success:hover {
-    background: rgba(100, 255, 218, 0.4);
+/* ===== Desafios colapsáveis dentro do card da sala ===== */
+.desafios-container {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  padding-top: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease, padding-top 0.3s ease;
+}
+
+.sala-card.is-open .desafios-container {
+  max-height: 800px; /* suficiente para múltiplos desafios */
+  opacity: 1;
+  margin-top: 20px; /* espaçamento quando aberto */
+  padding-top: 20px;
+}
+
+.desafios-title { margin-top: 0; margin-bottom: 16px; color: var(--text-color); cursor: pointer; -webkit-user-select: none; user-select: none; }
+
+/* ===== 4. AJUSTE DE RESPONSIVIDADE PARA TELAS MAIORES ===== */
+/* Em telas com mais de 768px, os botões deixam de ser empilhados e ficam lado a lado. */
+@media (min-width: 768px) {
+  .sala-actions {
+    flex-direction: row; /* Botões lado a lado */
+    gap: 12px;
+  }
+  /* Faz cada botão ocupar um espaço igual */
+  .sala-actions .action-btn { flex: 1; }
+}
+
+/* Telas mobile */
+@media (max-width: 480px) {
+  .sala-card { padding: 16px; }
+  .sala-title { font-size: 1.5rem; }
+  /* Força os itens de informação a ficarem em uma única coluna */
+  .sala-info { grid-template-columns: 1fr; }
+  .action-btn { font-size: 0.9rem; padding: 10px 16px; }
 }
 
 /* Utilitários para remover estilos inline do HTML */
@@ -245,4 +332,5 @@
     .section-title::before {
         height: 20px;
     }
+    .sala-code { gap: 6px; }
 }

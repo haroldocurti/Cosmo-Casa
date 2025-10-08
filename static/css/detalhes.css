@@ -110,6 +110,34 @@ back-btn:hover {
     flex: 0 0 auto;
 }
 
+/* Topbar layout and responsiveness */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Code share section: allow wrapping and prevent overflow */
+.room-code-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+#share-code {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .room-header .action-btn {
     padding: 8px 12px;
     background-color: #334155;
@@ -351,11 +379,15 @@ back-btn:hover {
   .room-subtitle { flex-direction: column; align-items: flex-start; gap: 10px; }
   .room-info-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .tabs { flex-wrap: wrap; }
+  .tabs .botao { flex: 1 1 32%; min-width: 140px; }
   .tab { flex: 1 0 auto; min-width: 120px; margin-bottom: 8px; }
   .student-card { flex-direction: column; }
   .student-stats { margin: 10px 0; }
   .student-actions { flex-direction: column; }
   .action-btn { width: 100%; margin: 4px 0; }
+  .room-header .room-right { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .room-header .room-right .botao { flex: 1 1 48%; min-width: 140px; }
+  .topbar-actions .action-btn { flex: 1 1 48%; min-width: 140px; }
 }
 @media (max-width: 480px) {
   .room-info-grid { grid-template-columns: 1fr; }
@@ -552,6 +584,7 @@ back-btn:hover {
     .tabs {
         gap: 4px; /* Gap ainda menor no mobile */
     }
+    .tabs .botao { flex: 1 1 100%; }
     .tab {
         padding: 10px 14px;
         font-size: 0.9rem;
@@ -559,4 +592,7 @@ back-btn:hover {
     .info-icon { font-size: 1.2rem; }
     .card { padding: 10px; }
     .card-title { font-size: 1rem; }
+    .room-header .room-right .botao { flex: 1 1 100%; }
+    .topbar-actions .action-btn { flex: 1 1 100%; }
+    #share-code { white-space: normal; overflow-wrap: anywhere; }
 }
