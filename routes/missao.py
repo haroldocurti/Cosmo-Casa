@@ -40,9 +40,13 @@ def _require_aluno_session():
         if ep in public_endpoints:
             return None
 
-        # Não permitir bypass por sessão de professor/admin nas páginas da missão.
-        # Professores devem operar via rotas do blueprint "professor".
-        # Mantemos somente páginas públicas acima (ranking/game_over) como livres.
+        # Permitir que professores/admins acessem a tela de montagem de transporte
+        # para configurar destino/nave e então retornar ao dashboard via rota dedicada.
+        try:
+            if ep == 'missao.montagem_transporte' and (session.get('user_role') in {'professor', 'admin'} or session.get('professor_id')):
+                return None
+        except Exception:
+            pass
 
         # Sessão obrigatória nas páginas da missão
         if not session.get('aluno_id'):
