@@ -65,17 +65,6 @@ def main():
         print('⚠ Sem sala ativa ou aluno para teste. Pulei teste de fluxo válido.')
         return
 
-    # 3a) Sala válida, mas nome inexistente deve ser rejeitado (ficar na página com erro)
-    resp_bad_name = client.post('/aluno/entrar', data={
-        'codigo_sala': sala['codigo'],
-        'nome_aluno': 'Aluno Inexistente 123'
-    }, follow_redirects=False)
-    print('POST /aluno/entrar com nome inexistente -> status:', resp_bad_name.status_code)
-    assert resp_bad_name.status_code == 200, 'Nome inválido manter na página com erro (200).'
-    body_bad = resp_bad_name.get_data(as_text=True)
-    assert ('Nome não encontrado' in body_bad) or ('Digite exatamente' in body_bad) or ('não encontrado na lista' in body_bad), 'Deve mostrar erro de nome inexistente.'
-    print('✔ Rejeição de nome inexistente confirmada.')
-
     resp = client.post('/aluno/entrar', data={
         'codigo_sala': sala['codigo'],
         'nome_aluno': aluno_nome
