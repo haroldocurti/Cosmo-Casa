@@ -52,9 +52,9 @@ def _require_aluno_session():
         if not session.get('aluno_id'):
             return redirect(url_for('index'))
 
-        # Controle de fluxo por etapa (apenas para alunos): impedir volta a páginas anteriores
+        # Controle de fluxo por etapa (apenas para alunos): impedir volta à montagem, permitir voltar à seleção
         etapa = session.get('missao_etapa')
-        if etapa == 'viagem' and ep in {'missao.montagem_transporte', 'missao.selecao_modulos'}:
+        if etapa == 'viagem' and ep in {'missao.montagem_transporte'}:
             destino = session.get('viagem_destino') or session.get('missao_destino')
             nave_id = session.get('viagem_nave_id') or session.get('missao_nave')
             if destino and nave_id:

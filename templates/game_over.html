@@ -48,7 +48,11 @@
         </div>
 
         <div>
-            <a href="{{ url_for('missao.retry_modulos') }}" class="botao">Montar Módulos Novamente</a>
+            {% if session.get('missao_destino') and session.get('missao_nave') %}
+                <a href="{{ url_for('missao.selecao_modulos', destino=session.get('missao_destino'), nave_id=session.get('missao_nave'), codigo_sala=session.get('codigo_sala')) }}" class="botao">Montar Módulos</a>
+            {% else %}
+                <a href="{{ url_for('tela_selecao', codigo_sala=session.get('codigo_sala')) }}" class="botao">Montar Módulos</a>
+            {% endif %}
             <a href="{{ url_for('missao.ranking_rodada') }}" class="botao">Ver Ranking</a>
         </div>
     </div>

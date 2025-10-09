@@ -97,6 +97,19 @@ def aluno_login(codigo_sala):
                         session['aluno_id'] = row[0]
                         session['nome_aluno'] = row[1]
                         session['sala_id'] = sala['id']
+                        # Limpar qualquer estado anterior de viagem para garantir ida à seleção
+                        try:
+                            for k in [
+                                'missao_etapa','viagem_diario','viagem_destino','viagem_nave_id','viagem_nave',
+                                'viagem_modulos','viagem_chegada_ok','viagem_pontuacao','missao_score','chegada_ok',
+                                'missao_feedback','erro_modulos'
+                            ]:
+                                session.pop(k, None)
+                            session['missao_etapa'] = 'selecao'
+                            session['missao_destino'] = sala.get('destino')
+                            session['missao_nave'] = sala.get('nave_id')
+                        except Exception:
+                            pass
                         logging.info(f"Login bem-sucedido para aluno {row[1]} na sala {codigo_sala}")
                         return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                     else:
@@ -138,16 +151,28 @@ def aluno_entrar():
                 try:
                     with sqlite3.connect(db_manager.db_path) as conn:
                         cursor = conn.cursor()
-                        cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ?', (sala['id'],))
-                        alunos = cursor.fetchall()
-                        logging.info(f"Alunos registrados na sala {codigo}: {[a[1] for a in alunos]}")
-                        nome_exato = nome.strip()
+                        # Validação estrita diretamente no banco: nome precisa existir exatamente na sala
+                        nome_exato = (nome or '').strip()
                         logging.info(f"Nome digitado (estrito): '{nome_exato}'")
-                        row = next((r for r in alunos if (r[1] or '').strip() == nome_exato), None)
+                        cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ? AND nome = ?', (sala['id'], nome_exato))
+                        row = cursor.fetchone()
                         if row:
                             session['aluno_id'] = row[0]
                             session['nome_aluno'] = row[1]
                             session['sala_id'] = sala['id']
+                            # Limpar qualquer estado anterior de viagem para garantir ida à seleção
+                            try:
+                                for k in [
+                                    'missao_etapa','viagem_diario','viagem_destino','viagem_nave_id','viagem_nave',
+                                    'viagem_modulos','viagem_chegada_ok','viagem_pontuacao','missao_score','chegada_ok',
+                                    'missao_feedback','erro_modulos'
+                                ]:
+                                    session.pop(k, None)
+                                session['missao_etapa'] = 'selecao'
+                                session['missao_destino'] = sala.get('destino')
+                                session['missao_nave'] = sala.get('nave_id')
+                            except Exception:
+                                pass
                             logging.info(f"Entrada bem-sucedida para aluno {row[1]} na sala {codigo}")
                             return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                         else:
