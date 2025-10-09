@@ -106,6 +106,9 @@ def montagem_transporte(destino):
 def selecao_modulos(destino, nave_id):
     """Tela de seleção de módulos para a missão."""
     try:
+        # Exigir sessão de aluno para acessar a seleção de módulos
+        if not session.get('aluno_id'):
+            return redirect(url_for('aluno.aluno_entrar'))
         # Validação: destino precisa ser válido
         destino_norm = (destino or '').lower()
         if destino_norm not in {'lua', 'marte', 'exoplaneta'}:
@@ -272,9 +275,7 @@ def viagem(destino, nave_id):
                     db_manager.atualizar_desafios_json(codigo_sala, json.dumps(desafios, ensure_ascii=False))
             except Exception:
                 logging.exception("Falha ao anexar desafio à sala")
-            # Apenas professores devem ser redirecionados ao dashboard; alunos seguem na simulação
-            if not session.get('aluno_id'):
-                return redirect(url_for('professor.professor_dashboard'))
+            # Permitir que a simulação prossiga mesmo sem aluno logado
 
         # --- Cálculo de chegada e pontuação ---
         def calcular_resultado_e_pontos(destino_val, nave_val, modulos_dict, diario):
@@ -382,34 +383,14 @@ def viagem(destino, nave_id):
         except Exception:
             logging.exception('Falha ao gerar feedback de Game Over')
 
-        # Registrar pontuação no ranking se aluno logado
+        # Registrar pontuação no ranking apenas se aluno estiver logado
         try:
             aluno_id = session.get('aluno_id')
             sala_id = session.get('sala_id')
-            # Fallback robusto: tentar resolver aluno/sala por nome e código se ausentes
             if not (aluno_id and sala_id):
-                try:
-                    codigo_sala_req = request.args.get('codigo_sala') or request.form.get('codigo_sala')
-                    nome_aluno = session.get('nome_aluno')
-                    # Resolver sala_id pelo código, se disponível
-                    if not sala_id and codigo_sala_req:
-                        sala = db_manager.buscar_sala_por_codigo_any(codigo_sala_req)
-                        if sala:
-                            sala_id = sala.get('id')
-                            session['sala_id'] = sala_id
-                    # Resolver aluno_id pelo nome dentro da sala
-                    if not aluno_id and sala_id and nome_aluno:
-                        with sqlite3.connect(db_manager.db_path) as conn:
-                            cursor = conn.cursor()
-                            cursor.execute('SELECT id FROM alunos WHERE sala_id = ? AND nome = ?', (sala_id, nome_aluno))
-                            row = cursor.fetchone()
-                            if row:
-                                aluno_id = row[0]
-                                session['aluno_id'] = aluno_id
-                except Exception:
-                    logging.exception('Fallback para obter aluno/sala ao registrar pontuação falhou')
-
-            if aluno_id and sala_id:
+                # Sem sessão de aluno: não registrar pontos
+                logging.info('Missão executada sem aluno logado; pontos não serão registrados.')
+            else:
                 detalhes = {
                     'destino': destino,
                     'nave_id': nave_id,
