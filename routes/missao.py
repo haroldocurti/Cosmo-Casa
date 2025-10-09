@@ -40,15 +40,11 @@ def _require_aluno_session():
         if ep in public_endpoints:
             return None
 
-        # Permitir acesso para professor/admin sem exigir sessão de aluno
-        try:
-            is_prof = (session.get('user_role') in {'professor', 'admin'}) or bool(session.get('professor_id'))
-        except Exception:
-            is_prof = False
-        if is_prof:
-            return None
+        # Não permitir bypass por sessão de professor/admin nas páginas da missão.
+        # Professores devem operar via rotas do blueprint "professor".
+        # Mantemos somente páginas públicas acima (ranking/game_over) como livres.
 
-        # Sessão obrigatória nas páginas da missão para alunos
+        # Sessão obrigatória nas páginas da missão
         if not session.get('aluno_id'):
             return redirect(url_for('index'))
 
@@ -467,7 +463,14 @@ def habitat():
             'inflavel': 'inflavel',
             'airlock': 'airlock',
             'hidroponia': 'hidroponia',
-            'impressao3d': 'imp3d'
+            'impressao3d': 'imp3d',
+            # novos módulos adicionados ao catálogo (services/data.py)
+            'blindagem': 'blindagem',
+            'estrutural': 'tesserae',    # Estrutural Modular (TESSERAE)
+            'lazer': 'cultura',          # Cultura e Lazer
+            'robotico': 'robotico',
+            'controle': 'controle',
+            'multifuncional': 'multifuncional'
         }
         # Lista com possíveis duplicatas para refletir quantidade levada por tipo
         mod_chaves = [mapper.get(m) for m in mod_ids if mapper.get(m)]
@@ -484,7 +487,8 @@ def habitat():
             'Habitat.html',
             modulos_permitidos=modulos_permitidos,
             max_modulos=max_modulos,
-            limites_por_tipo=limites_por_tipo
+            limites_por_tipo=limites_por_tipo,
+            destino=session.get('missao_destino')
         )
     except Exception:
         logging.exception('Falha ao abrir Habitat')

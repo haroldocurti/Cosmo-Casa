@@ -112,20 +112,13 @@ def aluno_login(codigo_sala):
 def aluno_entrar():
     """Entrada do aluno por código da sala e nome; vai direto ao desafio.
 
-    Normaliza nomes para reduzir fricção de digitação:
-    - Remove acentos e combina espaços
-    - Usa casefold para igualdade independente de maiúsculas/minúsculas
+    Validação estrita por nome exatamente como cadastrado na sala.
+    (Sem normalização: exige acentos, espaços e maiúsculas/minúsculas iguais)
     """
     erro = None
     sala = None
     if request.method == 'POST':
-        import unicodedata
-
-        def strip_accents(text: str) -> str:
-            return ''.join(ch for ch in unicodedata.normalize('NFD', text) if unicodedata.category(ch) != 'Mn')
-
-        def normalize_name(text: str) -> str:
-            return ' '.join(strip_accents(text).strip().split()).casefold()
+        # Validação estrita: sem normalização
 
         codigo = request.form.get('codigo_sala', '').strip().upper()
         nome = request.form.get('nome_aluno', '').strip()
@@ -148,9 +141,9 @@ def aluno_entrar():
                         cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ?', (sala['id'],))
                         alunos = cursor.fetchall()
                         logging.info(f"Alunos registrados na sala {codigo}: {[a[1] for a in alunos]}")
-                        nome_norm = normalize_name(nome)
-                        logging.info(f"Nome digitado normalizado: '{nome_norm}'")
-                        row = next((r for r in alunos if normalize_name(r[1]) == nome_norm), None)
+                        nome_exato = nome.strip()
+                        logging.info(f"Nome digitado (estrito): '{nome_exato}'")
+                        row = next((r for r in alunos if (r[1] or '').strip() == nome_exato), None)
                         if row:
                             session['aluno_id'] = row[0]
                             session['nome_aluno'] = row[1]
@@ -158,7 +151,7 @@ def aluno_entrar():
                             logging.info(f"Entrada bem-sucedida para aluno {row[1]} na sala {codigo}")
                             return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                         else:
-                            erro = 'Nome não encontrado na lista dessa sala. Verifique acentos e espaços.'
+                            erro = 'Nome não encontrado na lista dessa sala. Digite exatamente como está no arquivo do professor.'
                 except Exception:
                     logging.exception("Erro ao processar entrada do aluno")
                     erro = 'Ocorreu um erro ao processar sua entrada.'
