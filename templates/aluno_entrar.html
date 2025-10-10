@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Entrar na Missão</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     /* Garante que o gradiente cobre pelo menos a viewport */
     html, body { height: 100%; }
@@ -12,21 +13,7 @@
       margin: 0;
       color: #e8f1f8;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-
-      /* Gradiente fixo cobre a tela toda (e rola bem) */
-      background: linear-gradient(180deg, #7FB500 0%, #000 100%) fixed;
-      background-attachment: fixed;
       overflow-x: hidden; /* evita scroll horizontal inesperado */
-    }
-
-    /* (Opcional) Safari/iOS: reforço do gradiente com pseudo-elemento */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background: linear-gradient(180deg, #7FB500 0%, #000 100%);
-      /* sem blur/filtros para não gastar GPU */
     }
 
     /* Wrapper de página para centralizar o conteúdo verticalmente se desejar */
