@@ -97,6 +97,19 @@ def aluno_login(codigo_sala):
                         session['aluno_id'] = row[0]
                         session['nome_aluno'] = row[1]
                         session['sala_id'] = sala['id']
+                        # Limpar qualquer estado anterior de viagem para garantir ida à seleção
+                        try:
+                            for k in [
+                                'missao_etapa','viagem_diario','viagem_destino','viagem_nave_id','viagem_nave',
+                                'viagem_modulos','viagem_chegada_ok','viagem_pontuacao','missao_score','chegada_ok',
+                                'missao_feedback','erro_modulos'
+                            ]:
+                                session.pop(k, None)
+                            session['missao_etapa'] = 'selecao'
+                            session['missao_destino'] = sala.get('destino')
+                            session['missao_nave'] = sala.get('nave_id')
+                        except Exception:
+                            pass
                         logging.info(f"Login bem-sucedido para aluno {row[1]} na sala {codigo_sala}")
                         return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                     else:
@@ -112,20 +125,13 @@ def aluno_login(codigo_sala):
 def aluno_entrar():
     """Entrada do aluno por código da sala e nome; vai direto ao desafio.
 
-    Normaliza nomes para reduzir fricção de digitação:
-    - Remove acentos e combina espaços
-    - Usa casefold para igualdade independente de maiúsculas/minúsculas
+    Validação estrita por nome exatamente como cadastrado na sala.
+    (Sem normalização: exige acentos, espaços e maiúsculas/minúsculas iguais)
     """
     erro = None
     sala = None
     if request.method == 'POST':
-        import unicodedata
-
-        def strip_accents(text: str) -> str:
-            return ''.join(ch for ch in unicodedata.normalize('NFD', text) if unicodedata.category(ch) != 'Mn')
-
-        def normalize_name(text: str) -> str:
-            return ' '.join(strip_accents(text).strip().split()).casefold()
+        # Validação estrita: sem normalização
 
         codigo = request.form.get('codigo_sala', '').strip().upper()
         nome = request.form.get('nome_aluno', '').strip()
@@ -145,20 +151,32 @@ def aluno_entrar():
                 try:
                     with sqlite3.connect(db_manager.db_path) as conn:
                         cursor = conn.cursor()
-                        cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ?', (sala['id'],))
-                        alunos = cursor.fetchall()
-                        logging.info(f"Alunos registrados na sala {codigo}: {[a[1] for a in alunos]}")
-                        nome_norm = normalize_name(nome)
-                        logging.info(f"Nome digitado normalizado: '{nome_norm}'")
-                        row = next((r for r in alunos if normalize_name(r[1]) == nome_norm), None)
+                        # Validação estrita diretamente no banco: nome precisa existir exatamente na sala
+                        nome_exato = (nome or '').strip()
+                        logging.info(f"Nome digitado (estrito): '{nome_exato}'")
+                        cursor.execute('SELECT id, nome FROM alunos WHERE sala_id = ? AND nome = ?', (sala['id'], nome_exato))
+                        row = cursor.fetchone()
                         if row:
                             session['aluno_id'] = row[0]
                             session['nome_aluno'] = row[1]
                             session['sala_id'] = sala['id']
+                            # Limpar qualquer estado anterior de viagem para garantir ida à seleção
+                            try:
+                                for k in [
+                                    'missao_etapa','viagem_diario','viagem_destino','viagem_nave_id','viagem_nave',
+                                    'viagem_modulos','viagem_chegada_ok','viagem_pontuacao','missao_score','chegada_ok',
+                                    'missao_feedback','erro_modulos'
+                                ]:
+                                    session.pop(k, None)
+                                session['missao_etapa'] = 'selecao'
+                                session['missao_destino'] = sala.get('destino')
+                                session['missao_nave'] = sala.get('nave_id')
+                            except Exception:
+                                pass
                             logging.info(f"Entrada bem-sucedida para aluno {row[1]} na sala {codigo}")
                             return redirect(url_for('missao.selecao_modulos', destino=sala['destino'], nave_id=sala['nave_id']))
                         else:
-                            erro = 'Nome não encontrado na lista dessa sala. Verifique acentos e espaços.'
+                            erro = 'Nome não encontrado na lista dessa sala. Digite exatamente como está no arquivo do professor.'
                 except Exception:
                     logging.exception("Erro ao processar entrada do aluno")
                     erro = 'Ocorreu um erro ao processar sua entrada.'

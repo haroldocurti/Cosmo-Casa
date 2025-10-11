@@ -40,21 +40,21 @@ def _require_aluno_session():
         if ep in public_endpoints:
             return None
 
-        # Permitir acesso para professor/admin sem exigir sessão de aluno
+        # Permitir que professores/admins acessem a tela de montagem de transporte
+        # para configurar destino/nave e então retornar ao dashboard via rota dedicada.
         try:
-            is_prof = (session.get('user_role') in {'professor', 'admin'}) or bool(session.get('professor_id'))
+            if ep == 'missao.montagem_transporte' and (session.get('user_role') in {'professor', 'admin'} or session.get('professor_id')):
+                return None
         except Exception:
-            is_prof = False
-        if is_prof:
-            return None
+            pass
 
-        # Sessão obrigatória nas páginas da missão para alunos
+        # Sessão obrigatória nas páginas da missão
         if not session.get('aluno_id'):
             return redirect(url_for('index'))
 
-        # Controle de fluxo por etapa (apenas para alunos): impedir volta a páginas anteriores
+        # Controle de fluxo por etapa (apenas para alunos): impedir volta à montagem, permitir voltar à seleção
         etapa = session.get('missao_etapa')
-        if etapa == 'viagem' and ep in {'missao.montagem_transporte', 'missao.selecao_modulos'}:
+        if etapa == 'viagem' and ep in {'missao.montagem_transporte'}:
             destino = session.get('viagem_destino') or session.get('missao_destino')
             nave_id = session.get('viagem_nave_id') or session.get('missao_nave')
             if destino and nave_id:
@@ -106,6 +106,9 @@ def montagem_transporte(destino):
 def selecao_modulos(destino, nave_id):
     """Tela de seleção de módulos para a missão."""
     try:
+        # Exigir sessão de aluno para acessar a seleção de módulos
+        if not session.get('aluno_id'):
+            return redirect(url_for('aluno.aluno_entrar'))
         # Validação: destino precisa ser válido
         destino_norm = (destino or '').lower()
         if destino_norm not in {'lua', 'marte', 'exoplaneta'}:
@@ -272,9 +275,7 @@ def viagem(destino, nave_id):
                     db_manager.atualizar_desafios_json(codigo_sala, json.dumps(desafios, ensure_ascii=False))
             except Exception:
                 logging.exception("Falha ao anexar desafio à sala")
-            # Apenas professores devem ser redirecionados ao dashboard; alunos seguem na simulação
-            if not session.get('aluno_id'):
-                return redirect(url_for('professor.professor_dashboard'))
+            # Permitir que a simulação prossiga mesmo sem aluno logado
 
         # --- Cálculo de chegada e pontuação ---
         def calcular_resultado_e_pontos(destino_val, nave_val, modulos_dict, diario):
@@ -382,34 +383,14 @@ def viagem(destino, nave_id):
         except Exception:
             logging.exception('Falha ao gerar feedback de Game Over')
 
-        # Registrar pontuação no ranking se aluno logado
+        # Registrar pontuação no ranking apenas se aluno estiver logado
         try:
             aluno_id = session.get('aluno_id')
             sala_id = session.get('sala_id')
-            # Fallback robusto: tentar resolver aluno/sala por nome e código se ausentes
             if not (aluno_id and sala_id):
-                try:
-                    codigo_sala_req = request.args.get('codigo_sala') or request.form.get('codigo_sala')
-                    nome_aluno = session.get('nome_aluno')
-                    # Resolver sala_id pelo código, se disponível
-                    if not sala_id and codigo_sala_req:
-                        sala = db_manager.buscar_sala_por_codigo_any(codigo_sala_req)
-                        if sala:
-                            sala_id = sala.get('id')
-                            session['sala_id'] = sala_id
-                    # Resolver aluno_id pelo nome dentro da sala
-                    if not aluno_id and sala_id and nome_aluno:
-                        with sqlite3.connect(db_manager.db_path) as conn:
-                            cursor = conn.cursor()
-                            cursor.execute('SELECT id FROM alunos WHERE sala_id = ? AND nome = ?', (sala_id, nome_aluno))
-                            row = cursor.fetchone()
-                            if row:
-                                aluno_id = row[0]
-                                session['aluno_id'] = aluno_id
-                except Exception:
-                    logging.exception('Fallback para obter aluno/sala ao registrar pontuação falhou')
-
-            if aluno_id and sala_id:
+                # Sem sessão de aluno: não registrar pontos
+                logging.info('Missão executada sem aluno logado; pontos não serão registrados.')
+            else:
                 detalhes = {
                     'destino': destino,
                     'nave_id': nave_id,
@@ -467,7 +448,14 @@ def habitat():
             'inflavel': 'inflavel',
             'airlock': 'airlock',
             'hidroponia': 'hidroponia',
-            'impressao3d': 'imp3d'
+            'impressao3d': 'imp3d',
+            # novos módulos adicionados ao catálogo (services/data.py)
+            'blindagem': 'blindagem',
+            'estrutural': 'tesserae',    # Estrutural Modular (TESSERAE)
+            'lazer': 'cultura',          # Cultura e Lazer
+            'robotico': 'robotico',
+            'controle': 'controle',
+            'multifuncional': 'multifuncional'
         }
         # Lista com possíveis duplicatas para refletir quantidade levada por tipo
         mod_chaves = [mapper.get(m) for m in mod_ids if mapper.get(m)]
@@ -484,7 +472,8 @@ def habitat():
             'Habitat.html',
             modulos_permitidos=modulos_permitidos,
             max_modulos=max_modulos,
-            limites_por_tipo=limites_por_tipo
+            limites_por_tipo=limites_por_tipo,
+            destino=session.get('missao_destino')
         )
     except Exception:
         logging.exception('Falha ao abrir Habitat')

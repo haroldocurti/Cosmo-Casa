@@ -21,10 +21,13 @@
 }
 
 body {
-    background: linear-gradient(180deg, #7FB500 0%, #000 100%); /* Gradiente padrão do projeto */
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* Mantém o gradiente enquanto houver scroll */
-    background-size: cover;
+    background-color: #000;
+    /* Fundo global: preto brilhante com leve verde e textura de estrelas */
+    background-image: linear-gradient(180deg, rgba(127,181,0,0.10) 0%, rgba(0,0,0,0.0) 60%), url('https://www.transparenttextures.com/patterns/stardust.png');
+    background-repeat: no-repeat, repeat;
+    background-position: center, top left;
+    background-size: cover, auto;
+    background-attachment: fixed, scroll; /* gradiente fixo; textura rola normalmente */
     color: white;
     font-family: 'Gotham Book', Arial, sans-serif; /* Fonte padrão do projeto */
     display: flex;
@@ -32,6 +35,20 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow-x: hidden; /* evita scroll horizontal indesejado */
+}
+
+/* Sombra verde sutil em camadas no fundo para todas as telas */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(1200px 600px at 50% 15%, rgba(127,181,0,0.14), rgba(0,0,0,0) 60%),
+      radial-gradient(900px 480px at 12% 85%, rgba(127,181,0,0.10), rgba(0,0,0,0) 62%),
+      radial-gradient(900px 480px at 88% 85%, rgba(127,181,0,0.10), rgba(0,0,0,0) 62%);
 }
 
 /* Garante altura mínima para que o gradiente cubra toda a página */
@@ -819,17 +836,7 @@ body.conteudo-centralizado.selecao-modulos {
 }
 
 /* Corrigir gradiente quando houver scroll - manter fundo fixo */
-body.conteudo-centralizado.selecao-modulos::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(#7FB500, #000);
-    z-index: -1;
-    pointer-events: none;
-}
+/* Removido o pseudo-elemento específico para usar o fundo global */
 
 /* Mantém os cards em uma única linha na montagem com scroll horizontal */
 .naves-nowrap {

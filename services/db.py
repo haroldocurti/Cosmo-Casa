@@ -122,6 +122,11 @@ class DatabaseManager:
         """Cria uma nova sala virtual"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+            # Garantir regra de exclusividade: somente uma sala ativa por vez
+            try:
+                cursor.execute('UPDATE salas_virtuais SET ativa = 0 WHERE ativa = 1')
+            except Exception:
+                pass
             codigo_sala = self.gerar_codigo_sala()
             data_expiracao = datetime.now() + timedelta(days=30)
             
@@ -379,7 +384,7 @@ class DatabaseManager:
 
             base_sql = (
                 "SELECT a.id AS aluno_id, a.nome AS nome, "
-                "COALESCE(SUM(CASE WHEN (r.correta IS NULL OR r.correta = 1) THEN r.pontuacao ELSE 0 END), 0) AS total, "
+                "COALESCE(SUM(CASE WHEN r.correta = 1 THEN r.pontuacao ELSE 0 END), 0) AS total, "
                 "COUNT(r.id) AS tentativas, "
                 "COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS concluidos "
                 "FROM alunos a "
@@ -405,7 +410,7 @@ class DatabaseManager:
 
             base_sql = (
                 "SELECT a.id AS aluno_id, a.nome AS nome, "
-                "COALESCE(SUM(CASE WHEN (r.correta IS NULL OR r.correta = 1) THEN r.pontuacao ELSE 0 END), 0) AS total, "
+                "COALESCE(SUM(CASE WHEN r.correta = 1 THEN r.pontuacao ELSE 0 END), 0) AS total, "
                 "COUNT(r.id) AS tentativas, "
                 "COALESCE(SUM(CASE WHEN r.correta = 1 THEN 1 ELSE 0 END), 0) AS concluidos "
                 "FROM alunos a "
@@ -451,7 +456,7 @@ class DatabaseManager:
 
 
 # Instância compartilhada
-db_manager = DatabaseManager()
+db_manager = DatabaseManager('C:\\Users\\ricardo.moretti\\CosmoCasa\\Cosmo-Casa\\salas_virtuais.db')
 """Camada de acesso a dados (SQLite) do Cosmo-Casa.
 
 Fornece operações para professores e alunos:

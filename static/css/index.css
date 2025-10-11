@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Index (landing) — estilos dedicados
+   ========================================================================== */
+
+/* Fontes personalizadas */
+@font-face { font-family: 'Korataki'; src: url('../fontes/korataki.otf') format('opentype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'Gotham-Book'; src: url('../fontes/Gotham-Book.otf') format('opentype'); font-weight: normal; font-style: normal; }
+
+/* Corpo da página inicial */
+body.index-home {
+  background-color: #000;
+  /* Preto brilhante com leve verde em degradê + estrelas */
+  background-image: linear-gradient(180deg, rgba(127,181,0,0.12) 0%, rgba(0,0,0,0.0) 60%), url('https://www.transparenttextures.com/patterns/stardust.png');
+  background-repeat: no-repeat, repeat;
+  background-position: center, top left;
+  background-size: cover, auto;
+  color: #fff;
+  font-family: 'Gotham-Book', sans-serif;
+  margin: 0; padding: 0;
+  display: block;
+  min-height: 100vh; 
+  overflow-y: hidden; /* remove scroll em desktop */
+  overflow-x: hidden; /* evita scroll horizontal em qualquer tamanho */
+}
+
+/* Sombra verde sutil em camadas no fundo */
+body.index-home::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(1200px 600px at 50% 15%, rgba(127,181,0,0.14), rgba(0,0,0,0) 60%),
+    radial-gradient(900px 480px at 12% 85%, rgba(127,181,0,0.10), rgba(0,0,0,0) 62%),
+    radial-gradient(900px 480px at 88% 85%, rgba(127,181,0,0.10), rgba(0,0,0,0) 62%);
+}
+
+/* Barra superior */
+.brand-header { position: fixed; top: 0; left: 0; right: 0; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+.brand-logo { width: 150px; height: auto; }
+.site-title { display: none; }
+.quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.nav-link { text-decoration: none; }
+.brand-header .botao { margin-top: 0; padding: 3px 7px; font-size: 0.75rem; }
+
+/* Container e conteúdo */
+body.index-home .container { width: 92%; max-width: 1280px; margin: 0 auto; padding-top: 72px; }
+body.index-home .content { width: 100%; max-width: 1240px; padding: 1.5rem 0; text-align: center; margin: 0 auto; }
+
+/* Hero: título menor e responsivo */
+body.index-home h1 { font-family: 'Korataki', sans-serif; font-size: clamp(0.9rem, 2.2vw, 1.4rem); font-weight: normal; text-transform: uppercase; color: #fff; margin: 0 auto 1rem; line-height: 1.18; max-width: 640px; }
+.hero-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* Botões (mantém estilo base .botao do style.css) */
+body.index-home .botao { background-color: transparent; border: 2px solid #fff; color: #fff; padding: 12px 20px; text-decoration: none; font-size: 0.9rem; font-weight: bold; text-transform: uppercase; border-radius: 5px; transition: background-color 0.3s, color 0.3s; display: inline-block; cursor: pointer; text-align: center; }
+body.index-home .botao:hover { background-color: #fff; color: #000; }
+
+/* Anel de recursos: 2 blocos por lado ao redor do centro */
+.features-ring { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; column-gap: clamp(40px, 6vw, 80px); row-gap: 18px; align-items: center; width: 100%; max-width: 1240px; margin: 1.6rem auto 0; }
+.ring-center { grid-column: 2; width: clamp(180px, 18vw, 230px); height: clamp(180px, 18vw, 230px); margin: 0 auto; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 16px; box-sizing: border-box; box-shadow: 0 0 40px rgba(127,181,0,0.35), inset 0 0 24px rgba(127,181,0,0.28); background: radial-gradient(closest-side, rgba(127,181,0,0.15), rgba(0,0,0,0.0)); }
+.ring-center-title { font-family: 'Korataki', sans-serif; text-transform: uppercase; letter-spacing: .5px; font-size: 1.1rem; }
+.ring-center-sub { font-size: .9rem; opacity: .85; margin-top: 6px; }
+.features-ring .ring-items { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
+.features-ring .ring-items.left { grid-column: 1; align-items: flex-end; }
+.features-ring .ring-items.right { grid-column: 3; align-items: flex-start; }
+.ring-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 12px 16px; text-align: left; max-width: 260px; transition: transform 0.2s, box-shadow 0.2s; }
+.ring-item:hover { transform: translateY(-5px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.ring-item h3 { margin: 0 0 6px; font-family: 'Korataki'; font-size: 1.05rem; }
+.ring-item p { margin: 0; font-size: .95rem; color: #d5d5d5; line-height: 1.5; }
+
+/* Banner inferior */
+.bottom-banner { margin-top: 28px; padding: 16px; border-radius: 16px; background: linear-gradient(180deg, rgba(127,181,0,0.18) 0%, rgba(0,0,0,0.0) 100%); }
+.bottom-banner h2 { font-family: 'Korataki'; margin: 0 0 8px; font-size: 1.2rem; }
+.bottom-banner p { margin: 0 0 16px; }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  body.index-home { overflow-y: auto; }
+  body.index-home { background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); background-position: top left; background-size: auto; }
+  .brand-header { padding: 10px 16px; }
+  .brand-logo { width: 140px; }
+  .quick-actions { gap: 8px; }
+  .brand-header .botao { padding: 8px 12px; font-size: 0.9rem; }
+  body.index-home .container { width: 94%; padding-top: 72px; }
+  body.index-home h1 { font-size: 1.0rem; max-width: 520px; }
+  .features-ring { grid-template-columns: 1fr; }
+  .ring-center { grid-column: 1; margin: 18px auto; width: 180px; height: 180px; }
+  .features-ring .ring-items.left, .features-ring .ring-items.right { grid-column: 1; }
+  .features-ring .ring-items { height: auto; gap: 12px; }
+}
+
+/* Tablet: ajustar espaçamentos e diâmetro do centro */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .features-ring { column-gap: clamp(28px, 6vw, 60px); }
+  .ring-center { width: clamp(190px, 20vw, 220px); height: clamp(190px, 20vw, 220px); }
+}
+
+/* Desktop amplo: dar um pouco mais de largura útil sem quebrar layout */
+@media (min-width: 1400px) {
+  body.index-home .content { max-width: 1320px; }
+  .features-ring { max-width: 1320px; }
+}

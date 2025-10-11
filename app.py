@@ -331,6 +331,25 @@ app.register_blueprint(professor_bp, url_prefix='/professor')
 app.register_blueprint(aluno_bp)
 app.register_blueprint(missao_bp)
 
+# Proteção global redundante para rotas da missão
+# Garante bloqueio mesmo que alguma configuração de blueprint/before_request não seja aplicada.
+@app.before_request
+def _global_guard_missao():
+    try:
+        ep = (request.endpoint or '')
+        # Apenas protege rotas do blueprint `missao`, excetuando páginas públicas
+        if ep.startswith('missao.') and ep not in {'missao.ranking_rodada', 'missao.game_over'}:
+            # Permitir acesso de professor/admin à montagem de transporte
+            if ep == 'missao.montagem_transporte' and (session.get('user_role') in {'professor', 'admin'} or session.get('professor_id')):
+                return None
+            # Exigir sessão de aluno para demais páginas da missão
+            if not session.get('aluno_id'):
+                return redirect(url_for('aluno.aluno_entrar'))
+        return None
+    except Exception:
+        # Em qualquer falha, não bloquear demais rotas
+        return None
+
 # Alias estático: atender /static/images/* usando arquivos de static/imagens/*
 IMAGENS_ALIAS_MAP = {
     # módulos principais
